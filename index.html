@@ -921,13 +921,13 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
   phoneEl.addEventListener('input',function(){clearErr(phoneEl,errPhone);});
   emailEl.addEventListener('input',function(){clearErr(emailEl,errEmail);});
 
-  // ============ CDP Midu: ghi nhan lead ============
-  // CDP_URL tro toi proxy tren Vercel (thu muc cdp-proxy-pnvm), proxy giu x-api-key trong
-  // bien moi truong. Sau khi deploy proxy, dan URL that vao day:
-  //   var CDP_URL='https://<ten-project>.vercel.app/api/cdp-lead';
-  // Neu doi backend cap key chi-ghi gioi han theo domain thi co the goi thang CDP:
-  //   var CDP_URL='https://droppii-dev.midu.vn/v1/api/tctt/users';  // nho them header x-api-key o guiCDP
-  var CDP_URL='https://cdp-proxy-pnvm.vercel.app/api/cdp-lead';
+  // ============ Ghi nhan lead: CDP Midu + bao nhom Zalo ============
+  // Ca hai deu di qua proxy tren Vercel (source o thu muc cdp-proxy-pnvm) vi landing la trang
+  // tinh tren GitHub Pages: goi thang thi x-api-key cua CDP va Bearer token cua SMax deu phai
+  // nam tran trong ma nguon trang. Proxy giu chung trong bien moi truong.
+  var PROXY='https://cdp-proxy-pnvm.vercel.app';
+  var CDP_URL=PROXY+'/api/cdp-lead';
+  var SMAX_URL=PROXY+'/api/smax-lead';
   var CDP_UTM_KEY='pnvm_k4_link_nguon';
   var CO_NGUON=/[?&](utm_|fbclid|gclid)/i;
 
@@ -967,6 +967,21 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
     }catch(e){console.error('CDP error:',e);}
   }
 
+  // Bao co lead vao nhom Zalo qua proxy. KHONG await: truoc day dong nay la "await fetch(...)"
+  // goi thang SMax, neu SMax treo (khong loi, chi khong tra loi) thi nut dang ky khoa vinh vien
+  // va khach khong bao gio sang duoc trang thanh toan. keepalive de tin van di khi trang chuyen.
+  function guiSMax(name,phone,email){
+    if(!/^https?:/.test(SMAX_URL))return;
+    try{
+      fetch(SMAX_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({fullName:name,phoneNumber:phone,email:email}),
+        keepalive:true
+      }).catch(function(e){console.error('SMax error:',e);});
+    }catch(e){console.error('SMax error:',e);}
+  }
+
   // Nhan dien trinh duyet trong app (FB/Zalo/Instagram/TikTok...) de xu ly popup dung cach
   function isInAppBrowser() {
     var ua = navigator.userAgent || "";
@@ -979,7 +994,11 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
 
     var ok=true;
     var name=nameEl.value.trim();
-    var phone=phoneEl.value.trim().replace(/\s|\.|-/g,'');
+    var phone=phoneEl.value.trim().replace(/[\s.()-]/g,'');
+    // Chuan hoa dau so quoc te ve dang 0 truoc khi kiem tra: khach copy so tu Zalo hay danh ba
+    // rat hay ra dang "+84..." / "0084...". Truoc day nhung so nay bi bao la khong hop le.
+    // So Viet Nam luon bat dau bang 0 nen chuoi bat dau bang "84" chac chan la ma quoc gia.
+    phone=phone.replace(/^(?:\+|00)?84/,'0').replace(/^00+/,'0');
     var emailValue=emailEl.value.trim();
 
     if(name.length<2){nameEl.classList.add('invalid');errName.classList.add('show');ok=false;}
@@ -1002,25 +1021,8 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
     // giong het lan dang ky, nen phai giu nguyen dang khach go (giong z4z api/lead.js).
     guiCDP(name, phone, emailValue.trim());
 
-    // Goi SMax API de gui tin Zalo
-    var thongtinlead = "Họ và tên: " + name + "\nSố điện thoại: " + phone + "\nEmail: " + emailValue;
-    await fetch("https://api.smax.ai/public/bizs/diemptccmidu/triggers/6a1d6571839d4f38f90c0c6e", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0cmlnZ2VyX2lkIjoiNmExZDY1NzE4MzlkNGYzOGY5MGMwYzZlIiwiaWF0IjoxNzgwMzExNDA5LCJleHAiOjMxNzMyNDc1MzgwOX0.TtA9ehKL0l63dnNaoLGpFWnCpFWF1BBd19KIZsav9Mg"
-      },
-      body: JSON.stringify({
-        customer: {
-          id: "zlw2624244034404589972",
-          page_id: "zlw852060909005878828"
-        },
-        attrs: [{
-          name: "thongtinlead",
-          value: thongtinlead
-        }]
-      })
-    }).catch(function(err){ console.error("SMax API error:", err); });
+    // Bao co lead vao nhom Zalo (qua proxy, khong await - xem ghi chu o guiSMax)
+    guiSMax(name, phone, emailValue);
 
     // Meta Pixel - ghi nhan hoan tat dang ky (kem gia tri don hang de toi uu theo value/tinh ROAS)
     if (typeof fbq === 'function') {
