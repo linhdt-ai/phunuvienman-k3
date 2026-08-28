@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- CHƯA CÔNG BỐ: chưa liên kết từ index.html và bị chặn lập chỉ mục.
+     Bỏ dòng robots bên dưới khi chuyển sang luồng thanh toán mới. -->
+<meta name="robots" content="noindex,nofollow">
+<title>Chào mừng bạn vào K4 - Chuyên viên Phụ nữ Viên mãn</title>
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#c2185b; --primary-dark:#8e0038; --primary-light:#fce4ec;
+  --gold:#f9a825; --gold-soft:#fff9e6;
+  --text:#2d2d2d; --text-soft:#5a5a5a; --bg:#fffafa; --white:#fff;
+  --ok:#0d6b50; --ok-soft:#e3f3ed;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--text);
+  line-height:1.72;font-size:16.5px;-webkit-font-smoothing:antialiased;padding:32px 18px 64px;}
+.wrap{max-width:600px;margin:0 auto;}
+.brand{text-align:center;margin-bottom:24px;}
+.brand img{height:52px;width:auto;}
+.tick{width:70px;height:70px;border-radius:50%;background:var(--ok);color:#fff;font-size:38px;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+h1{font-family:'Quicksand',sans-serif;font-size:clamp(25px,5vw,33px);color:var(--primary-dark);
+  text-align:center;line-height:1.25;margin-bottom:10px;}
+.sub{text-align:center;color:var(--text-soft);margin-bottom:26px;}
+.card{background:var(--white);border-radius:24px;padding:26px 24px;margin-bottom:16px;
+  box-shadow:0 8px 32px rgba(142,0,56,.12);border:1px solid rgba(194,24,91,.08);}
+.mahv-box{text-align:center;}
+.mahv{display:inline-block;background:var(--ok-soft);color:var(--ok);font-weight:700;
+  font-size:26px;letter-spacing:.1em;padding:10px 26px;border-radius:100px;margin-top:8px;
+  font-variant-numeric:tabular-nums;}
+h2{font-family:'Quicksand',sans-serif;font-size:20px;color:var(--primary-dark);margin-bottom:14px;}
+.steps{counter-reset:b;display:grid;gap:14px;}
+.step{display:grid;grid-template-columns:30px 1fr;gap:14px;align-items:start;}
+.step::before{counter-increment:b;content:counter(b);width:26px;height:26px;border-radius:50%;
+  background:var(--primary);color:#fff;font-size:13.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;margin-top:3px;}
+.step p{font-size:15.4px;color:var(--text-soft);}
+.step b{color:var(--text);}
+.lich{display:grid;gap:1px;background:var(--primary-light);border-radius:14px;overflow:hidden;}
+.lich div{background:var(--white);padding:11px 15px;display:flex;justify-content:space-between;gap:12px;font-size:15px;}
+.lich span{color:var(--text-soft);}
+.lich b{color:var(--primary-dark);text-align:right;}
+.note{background:var(--gold-soft);border:1px solid rgba(249,168,37,.5);color:#7c4a06;
+  border-radius:14px;padding:13px 15px;font-size:14.8px;margin-top:14px;}
+.back{display:block;text-align:center;margin-top:22px;color:var(--primary);
+  text-decoration:none;font-size:14.6px;font-weight:600;}
+.hide{display:none!important;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand"><img src="img/logo-vien.webp" width="295" height="81" alt="Viện Phát triển Thể chất và Trí tuệ"></div>
+  <div class="tick">✓</div>
+  <h1>Bạn đã là học viên K4</h1>
+  <p class="sub">Học phí đã được ghi nhận. Suất học của bạn được giữ.</p>
+
+  <div class="card mahv-box hide" id="khoi-mahv">
+    <p style="font-size:15px;color:var(--text-soft)">Mã học viên của bạn</p>
+    <div class="mahv" id="mahv"></div>
+    <p style="font-size:14.4px;color:var(--text-soft);margin-top:10px">Giữ lại mã này — bạn sẽ cần khi vào lớp và khi cần hỗ trợ.</p>
+  </div>
+
+  <div class="card">
+    <h2>Việc cần làm tiếp</h2>
+    <div class="steps">
+      <div class="step"><p><b>Kiểm tra email.</b> Hướng dẫn vào lớp và tài liệu chuẩn bị đã được gửi tới hòm thư bạn đăng ký. Không thấy thì xem cả mục Quảng cáo và Spam.</p></div>
+      <div class="step"><p><b>Lưu lịch học.</b> Buổi đầu diễn ra lúc 20h ngày 09/09 qua Zoom. Đường link Zoom gửi trước giờ học.</p></div>
+      <div class="step"><p><b>Chuẩn bị chỗ ngồi yên tĩnh</b> và sổ ghi chép. Buổi 1 là buổi nền, bỏ lỡ sẽ khó theo các buổi sau.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Lịch khoá K4</h2>
+    <div class="lich">
+      <div><span>Buổi 1 — Khai Tâm</span><b>20h, 09/09 · Zoom</b></div>
+      <div><span>Buổi 2 — Hiểu mình, hiểu người</span><b>20h, 10/09 · Zoom</b></div>
+      <div><span>Buổi 3 — Tâm thế An Khang</span><b>11–12/09 · Elearning</b></div>
+      <div><span>Buổi 4 — Tốt nghiệp</span><b>20h, 12/09 · Zoom</b></div>
+    </div>
+    <p class="note">Buổi 3 học trên hệ thống, bạn chủ động thời gian nhưng phải xong <b>trước buổi 4</b> để kịp thi tốt nghiệp.</p>
+  </div>
+
+  <a class="back" href="index.html">← Về trang khoá học</a>
+</div>
+
+<script>
+(function(){
+  try{
+    var o=JSON.parse(localStorage.getItem('pnvm_order')||sessionStorage.getItem('pnvm_order')||'null');
+    if(o&&o.masohv){
+      document.getElementById('mahv').textContent=o.masohv;
+      document.getElementById('khoi-mahv').classList.remove('hide');
+    }
+  }catch(_e){}
+})();
+</script>
+</body>
+</html>
