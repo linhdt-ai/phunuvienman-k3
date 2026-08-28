@@ -184,6 +184,9 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
         body:JSON.stringify({
           name:don.name,phone:don.phone,email:don.email,address:don.address,
           code:don.code,stage:'da_thanh_toan',source:'pnvm',link:don.link,
+          // Gửi lại mã đơn DDCC lấy được lúc đăng ký để bên đó CHỐT đơn cũ.
+          // Thiếu nó là DDCC tạo thêm một đơn nữa cho cùng khách.
+          paymentCode:don.paymentCode||'',
           amount:d.amount,ref:d.ref,paid_at:d.at
         })
       }).catch(function(){});
