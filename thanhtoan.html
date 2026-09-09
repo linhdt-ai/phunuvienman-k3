@@ -151,10 +151,34 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
     });
   });
 
+  // ── Ghi nhận đơn ────────────────────────────────────────────────────────────
+  // Trang đăng ký CỐ Ý không gọi /api/lead: đo 09/09 thấy nó mất 7-16 giây, chờ nó xong mới
+  // chuyển trang thì nút đăng ký chết cứng và khách bấm lại mấy lần.
+  // Gọi ở đây, trong lúc khách đang đọc mã QR — mã QR không phụ thuộc lời gọi này.
+  // Gọi xong mới có `t` (chữ ký) để hỏi /api/check, nên việc dò tiền bắt đầu sau.
+  function ghiNhanDon(xongThi){
+    if(don.t){ xongThi(); return; }   // đã ghi rồi — khách F5 lại trang, đừng ghi lần hai
+    fetch(API+'/api/lead',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        name:don.name, phone:don.phone, email:don.email, address:don.address,
+        code:don.code, stage:'dang_ky', source:'pnvm', link:don.link
+      })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(d){
+        don.t=d.t||''; don.masohv=d.masohv||''; don.paymentCode=d.paymentCode||'';
+        try{ localStorage.setItem(KHOA,JSON.stringify(don)); }catch(_e){}
+        if(don.masohv){ el('mahv').textContent=don.masohv; el('khoi-mahv').classList.remove('hide'); }
+      }
+    }).catch(function(e){ console.error('Loi ghi nhan don:',e); })
+      .then(function(){ xongThi(); });
+  }
+
   // ── Hỏi máy chủ đã nhận tiền chưa ───────────────────────────────────────────
   // `t` là chữ ký do /api/lead cấp lúc đăng ký. Không có nó thì máy chủ từ chối, để người lạ
   // không dò được ai đã mua bằng cách đoán số điện thoại.
-  var lan=0, xong=false;
+  var lan=0, xong=false, nhip=null;
   function hoi(){
     if(xong) return;
     lan++;
@@ -172,7 +196,11 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
       if(lan>48) el('trang-thai').textContent='Vẫn đang chờ. Ngân hàng đôi khi chậm vài phút — bạn cứ để yên trang này.';
     }).catch(function(){});
   }
-  var nhip=setInterval(hoi,5000); hoi();
+  // Ghi nhận đơn xong mới bắt đầu dò tiền — trước đó chưa có chữ ký nên hỏi cũng bị từ chối.
+  ghiNhanDon(function(){
+    nhip=setInterval(hoi,5000);
+    hoi();
+  });
 
   function daTra(d){
     clearInterval(nhip);

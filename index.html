@@ -977,6 +977,9 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
 
     isSubmitting=true;
     submitBtn.disabled=true;
+    // Phan hoi TUC THI. Khong co dong nay khach bam xong thay nut im lim, tuong hong,
+    // bam lai may lan (bao cao that 09/09).
+    submitBtn.textContent='Đang mở trang chuyển khoản…';
 
     // Meta Pixel - ghi nhan hoan tat dang ky (kem gia tri don hang de toi uu theo value/tinh ROAS).
     // Day KHONG phai su kien mua hang: trang thanh toan ban Purchase khi tien that su ve.
@@ -989,42 +992,20 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
     var maDon = 'PNVM' + phone;
     var diaChi = addressEl ? addressEl.value.trim() : '';
 
-    // MOT loi goi duy nhat lo het: Google Sheet, GetResponse, nhom Zalo, CDP, don hang DDCC.
-    // KHONG goi guiCDP/guiSMax nua - /api/lead da lam ca hai, goi them la CDP co 2 ban ghi
-    // cho mot khach va nhom Zalo nhan 2 tin cho mot nguoi.
-    var kq = null;
-    try {
-      var r = await Promise.race([
-        fetch(PROXY + '/api/lead', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            name: name, phone: phone, email: emailValue, address: diaChi,
-            code: maDon, stage: 'dang_ky', source: 'pnvm', link: layLinkNguon()
-          })
-        }).then(function(x){ return x.json(); }),
-        // Khong de khach cho mai: 12 giay khong tra loi thi van cho di tiep.
-        new Promise(function(res){ setTimeout(function(){ res(null); }, 12000); })
-      ]);
-      kq = r;
-    } catch (e) { console.error('Loi /api/lead:', e); }
-
-    // Luu don vao may de trang thanh toan doc lai. localStorage KHONG dung chung giua hai ten
-    // mien, nen trang thanh toan bat buoc phai cung domain voi trang nay.
-    //   t           = chu ky de hoi /api/check, khong co thi khong tra duoc trang thai don
-    //   paymentCode = ma don ben DDCC, gui lai luc bao da thanh toan de CHOT don cu
+    // KHONG goi /api/lead o day. Do 09/09: no mat 7-16 giay (Apps Script ~3s + DDCC + GetResponse
+    // + Zalo + CDP). Cho no xong roi moi chuyen trang thi khach thay nut chet cung, bam lai
+    // may lan, tuong web hong.
+    // Ma QR khong can may chu de dung: ma don, so tien, so tai khoan deu biet ngay tai day.
+    // Nen chuyen trang TRUOC, con viec ghi nhan de trang thanh toan lam nen trong luc khach
+    // dang doc ma QR. Xem thanhtoan.html -> ghiNhanDon().
     try {
       localStorage.setItem('pnvm_order', JSON.stringify({
         code: maDon, name: name, phone: phone, email: emailValue, address: diaChi,
         amount: GIA, link: layLinkNguon(),
-        t: (kq && kq.t) || '',
-        masohv: (kq && kq.masohv) || '',
-        paymentCode: (kq && kq.paymentCode) || ''
+        t: '', masohv: '', paymentCode: ''   // trang thanh toan goi /api/lead roi dien not
       }));
     } catch (e) {}
 
-    // Di tiep DU /api/lead co hong: tien van vao duoc tai khoan, va he doi soat (webhook SePay
-    // + cron 1h sang) se ghi bu don do. Chan khach lai o day moi la mat don that.
     form.style.display = 'none';
     success.classList.add('show');
     window.location.href = 'thanhtoan.html';
