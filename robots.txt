@@ -1,0 +1,17 @@
+# daotao.phunuvienman.vn
+
+# Trang bán được lập chỉ mục bình thường.
+User-agent: *
+Allow: /
+
+# TẠM CHẶN — 7 trang chính sách còn ô [cần bổ sung] (MST, địa chỉ, hotline).
+# Chúng vẫn mở được bằng link trực tiếp, chỉ là không cho công cụ tìm kiếm đưa vào kết quả.
+# GỠ TOÀN BỘ KHỐI NÀY khi đã bổ sung xong hồ sơ, đồng thời bỏ thẻ
+# <meta name="robots" content="noindex,nofollow"> trong 7 trang đó và bật lại link ở footer.
+Disallow: /chinh-sach-bao-mat.html
+Disallow: /chinh-sach-va-quy-dinh-chung.html
+Disallow: /chinh-sach-giao-nhan.html
+Disallow: /chinh-sach-doi-tra-hoan-hoc-phi.html
+Disallow: /huong-dan-dang-ky.html
+Disallow: /huong-dan-thanh-toan.html
+Disallow: /quy-trinh-xu-ly-khieu-nai.html
