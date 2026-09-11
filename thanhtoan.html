@@ -7,6 +7,19 @@
      Bỏ dòng robots bên dưới khi chuyển sang luồng thanh toán mới. -->
 <meta name="robots" content="noindex,nofollow">
 <title>Thanh toán học phí - Chuyên viên Phụ nữ Viên mãn K5</title>
+<!-- Meta Pixel — CÙNG Pixel với index.html (1969118813618077). Trước 11/09/2026 trang này
+     KHÔNG nạp Pixel, nên lệnh fbq('track','Purchase') bên dưới im lặng bỏ qua: Meta ghi 0 lượt mua. -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1969118813618077');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1969118813618077&ev=PageView&noscript=1"></noscript>
+<!-- /Meta Pixel -->
 <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -128,6 +141,10 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
   try{ don=JSON.parse(localStorage.getItem(KHOA)||sessionStorage.getItem(KHOA)||'null'); }catch(_e){}
 
   var el=function(id){return document.getElementById(id);};
+  function docCookie(ten){
+    var m=document.cookie.match(new RegExp('(?:^|;\\s*)'+ten+'=([^;]+)'));
+    try{ return m?decodeURIComponent(m[1]):''; }catch(_e){ return ''; }
+  }
   function hien(id){ el(id).classList.remove('hide'); }
 
   if(!don||!don.code){ hien('khong-co'); return; }
@@ -140,6 +157,15 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
   el('qr').src='https://img.vietqr.io/image/'+BIN+'-'+ACC+'-compact2.png?amount='+soTien
     +'&addInfo='+encodeURIComponent(don.code)+'&accountName='+encodeURIComponent(NAME);
   hien('man-tra');
+
+  // Pixel: InitiateCheckout — khách đã tới bước chuyển khoản. Mỗi đơn 1 lần để F5 không đếm thừa.
+  var coIC='pnvm_ic_'+don.code;
+  try{
+    if(!localStorage.getItem(coIC) && typeof fbq==='function'){
+      fbq('track','InitiateCheckout',{value:soTien,currency:'VND',content_name:'chuyen-vien-phu-nu-vien-man'});
+      localStorage.setItem(coIC,'1');
+    }
+  }catch(_e){}
 
   document.querySelectorAll('.copy').forEach(function(b){
     b.addEventListener('click',function(){
@@ -212,14 +238,32 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
         body:JSON.stringify({
           name:don.name,phone:don.phone,email:don.email,address:don.address,
           code:don.code,stage:'da_thanh_toan',source:'pnvm',link:don.link,
-          amount:d.amount,ref:d.ref,paid_at:d.at
+          amount:d.amount,ref:d.ref,paid_at:d.at,
+          // Mã đơn DDCC cấp lúc đăng ký. THIẾU nó thì máy chủ tưởng đơn mới và DDCC đẻ thêm một
+          // đơn nữa cho cùng khách (trước 11/09 dòng này bị bỏ sót dù mã đã được lưu ở trên).
+          paymentCode:don.paymentCode||'',
+          // Cookie Pixel để Conversions API khớp đúng người mua. Trang này và API khác tên miền
+          // nên trình duyệt không tự gửi cookie đi — phải đọc ra rồi nhét vào body.
+          fbp:docCookie('_fbp'), fbc:docCookie('_fbc')
         })
       }).catch(function(){});
     }catch(_e){}
     if(don.masohv){ el('mahv').textContent=don.masohv; el('khoi-mahv').classList.remove('hide'); }
     el('man-tra').classList.add('hide');
     hien('man-xong');
-    try{ if(typeof fbq==='function') fbq('track','Purchase',{value:Number(d.amount)||0,currency:'VND'}); }catch(_e){}
+    // Pixel: Purchase — chỉ bắn khi SePay đã xác nhận tiền vào, mỗi đơn 1 lần (khách F5 trang
+    // sau khi đã trả thì không bắn lại).
+    // eventID lấy TỪ MÁY CHỦ (d.event_id do /api/check sinh) — cùng một đơn được báo từ 3 nơi
+    // (trang này, hệ đối soát, api/lead), Meta gộp làm MỘT nhờ mã này.
+    // KHÔNG tự dựng mã ở đây: mã đơn chứa số điện thoại, ghép thẳng là gửi PII thô sang Meta.
+    var coMua='pnvm_purchase_'+don.code;
+    var daBan=false; try{ daBan=!!localStorage.getItem(coMua); }catch(_e){}
+    if(!daBan){
+      try{ if(typeof fbq==='function') fbq('track','Purchase',
+        {value:Number(d.amount)||soTien,currency:'VND',content_name:'chuyen-vien-phu-nu-vien-man'},
+        d.event_id?{eventID:d.event_id}:undefined); }catch(_e){}
+      try{ localStorage.setItem(coMua,'1'); }catch(_e){}
+    }
   }
 })();
 </script>
