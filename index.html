@@ -399,6 +399,17 @@ h2 em{font-style:normal;background:linear-gradient(120deg,var(--primary),var(--g
 }
 .sticky-cta .btn{width:100%;padding:15px;box-shadow:none;}
 
+/* ===== Uu dai gioi thieu (voucher hoc vien da tot nghiep) ===== */
+.hide{display:none !important;}
+.price-cu{font-size:clamp(20px,3vw,26px);color:var(--text-soft);text-decoration:line-through;opacity:.75;margin-bottom:-6px;}
+.uu-dai{
+  max-width:560px;margin:18px auto 0;background:var(--gold-soft);border:1px solid #f4d78a;
+  border-radius:var(--radius);padding:16px 20px;font-size:16px;line-height:1.6;color:var(--primary-dark);
+}
+.uu-dai b{color:var(--primary);}
+.form-group .ghi-chu{font-size:13px;color:var(--text-soft);font-weight:400;margin-top:6px;line-height:1.5;}
+.form-group input.co-uu-dai{border-color:var(--accent);background:#f3fbfa;}
+
 /* ============ RESPONSIVE ============ */
 @media(max-width:820px){
   :root{--header-h:64px;}
@@ -764,9 +775,14 @@ src="https://www.facebook.com/tr?id=1969118813618077&ev=PageView&noscript=1"
   <div class="wrap">
     <div class="offer-block">
       <div class="offer-orig">GIÁ KHÓA HỌC: <b>18.000.000Đ</b></div>
-      <div class="offer-special">GIÁ ĐẶC BIỆT CHO KHÓA 5:</div>
-      <div class="price-big">999.000đ</div>
-      <div class="offer-hint">(Tăng liên tục ở các khóa sau)</div>
+      <div class="offer-special" id="offer-special">GIÁ ĐẶC BIỆT CHO KHÓA 5:</div>
+      <!-- Gia goc giu nguyen trong HTML. Khach vao bang link moi thi JS doi sang gia uu dai;
+           khach tat JS hoac link het hieu luc thi van thay dung gia thuong, khong bao gio
+           thay gia giam ma may chu khong cong nhan. -->
+      <div class="price-big" id="gia-hien">999.000đ</div>
+      <div class="price-cu hide" id="gia-cu">999.000đ</div>
+      <div class="offer-hint" id="offer-hint">(Tăng liên tục ở các khóa sau)</div>
+      <div class="uu-dai hide" id="bang-uu-dai"></div>
       <div class="offer-feature">Trọn vẹn 4 buổi nền tảng + trên 40 workshop bồi dưỡng trọn đời + bộ công cụ + mạng lưới chuyên gia</div>
       <a href="#dang-ky" class="btn btn-lg btn-gold">GIỮ CHỖ NGAY</a>
       <div class="offer-urgent">Học muộn khóa nào, tiếc vô tận khóa đó</div>
@@ -810,6 +826,13 @@ src="https://www.facebook.com/tr?id=1969118813618077&ev=PageView&noscript=1"
         <div class="form-group">
           <label for="address">Địa chỉ của bạn</label>
           <input type="text" id="address" name="address" placeholder="Theo địa giới hành chính mới">
+        </div>
+        <!-- O go tay, danh cho khach copy link moi bi rot mat duoi (hay gap khi gui qua Zalo).
+             Vao bang link co ?gt= thi JS tu dien san o nay. -->
+        <div class="form-group">
+          <label for="gioithieu">Mã giới thiệu <span style="color:#999;font-weight:400;">(nếu có)</span></label>
+          <input type="text" id="gioithieu" name="gioithieu" placeholder="Nhập mã của người giới thiệu" autocomplete="off" maxlength="12">
+          <div class="ghi-chu" id="gt-ghi-chu">Học viên đã tốt nghiệp có thể giới thiệu tối đa 2 người.</div>
         </div>
         <button type="submit" class="btn" id="submitBtn">ĐĂNG KÝ</button>
       </form>
@@ -934,7 +957,10 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
   var PROXY='https://cdp-proxy-pnvm.vercel.app';
   // Gia khoa. Doi gia thi phai sua CA day, cho hien thi tren trang, VA MIN_AMOUNT trong
   // lib/reconcile.js cua proxy - do la nguong may chu phan "khach da tra du chua".
-  var GIA=999000;
+  var GIA_GOC=999000;
+  var GIA=GIA_GOC;              // gia dang ap dung; doi khi co ma moi hop le
+  var VOUCHER={ma:'',ten:''};   // ma rong = khong co uu dai
+  var GT_KEY='pnvm_gt';
   var CDP_UTM_KEY='pnvm_k4_link_nguon';
   var CO_NGUON=/[?&](utm_|fbclid|gclid)/i;
 
@@ -959,6 +985,86 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
       if(luu&&luu.url&&(Date.now()-luu.t)<30*24*3600*1000) return luu.url;
     }catch(e){}
     return hienTai;
+  }
+
+  // ───── MA MOI CUA HOC VIEN DA TOT NGHIEP (giam 20%) ────────────────────────────
+  // Trang chi HIEN THI uu dai. Quyet dinh that nam o may chu: api/lead.js tra lai ma mot lan
+  // nua luc tao don va tu dung lai ma don. Khach sua localStorage hay goi thang /api/moi deu
+  // khong tu giam gia duoc. Mat mang hay API chet thi im lang giu gia thuong — thieu 200k
+  // con sua duoc, chu bao gia giam ma may chu khong cong nhan la khach chuyen tien roi mac ket.
+  var gtEl=document.getElementById('gioithieu');
+  var gtGhiChu=document.getElementById('gt-ghi-chu');
+  var GHI_CHU_GOC=gtGhiChu?gtGhiChu.textContent:'';
+
+  function tien(n){ return Number(n).toLocaleString('vi-VN')+'đ'; }
+
+  function veLaiGia(){
+    var coUuDai=!!VOUCHER.ma;
+    var giaEl=document.getElementById('gia-hien');
+    var giaCuEl=document.getElementById('gia-cu');
+    var bang=document.getElementById('bang-uu-dai');
+    var hint=document.getElementById('offer-hint');
+    var sticky=document.querySelector('.sticky-cta .btn');
+
+    if(giaEl) giaEl.textContent=tien(GIA);
+    if(giaCuEl){ giaCuEl.textContent=tien(GIA_GOC); giaCuEl.classList.toggle('hide',!coUuDai); }
+    if(hint) hint.classList.toggle('hide',coUuDai);
+    if(sticky) sticky.textContent='Đăng ký giữ chỗ K5 - '+tien(GIA);
+    if(bang){
+      bang.classList.toggle('hide',!coUuDai);
+      if(coUuDai){
+        bang.innerHTML=VOUCHER.ten
+          ? 'Bạn được <b>'+VOUCHER.ten.replace(/[<>&]/g,'')+'</b> giới thiệu nên được giảm <b>'+tien(GIA_GOC-GIA)+'</b> học phí.'
+          : 'Bạn có mã giới thiệu hợp lệ nên được giảm <b>'+tien(GIA_GOC-GIA)+'</b> học phí.';
+      }
+    }
+    if(gtEl) gtEl.classList.toggle('co-uu-dai',coUuDai);
+  }
+
+  function nhoMa(ma){ try{ localStorage.setItem(GT_KEY,JSON.stringify({ma:ma,t:Date.now()})); }catch(e){} }
+  function maDaNho(){
+    try{
+      var o=JSON.parse(localStorage.getItem(GT_KEY)||'null');
+      // Nho 7 ngay: khach bam link moi hom nay, mai quay lai bang link tran van con uu dai.
+      if(o&&o.ma&&(Date.now()-o.t)<7*24*3600*1000) return o.ma;
+    }catch(e){}
+    return '';
+  }
+
+  // tuGo = khach tu danh ma vao o (khac voi vao bang link). Chi luc do moi bao "khong dung duoc";
+  // vao bang link het han thi im lang giu gia thuong, dung nhu da chot.
+  function kiemTraMa(ma,tuGo){
+    ma=String(ma||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+    if(!ma){ VOUCHER={ma:'',ten:''}; GIA=GIA_GOC; veLaiGia(); return; }
+    fetch(PROXY+'/api/moi?ma='+encodeURIComponent(ma))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d&&d.hopLe){
+          VOUCHER={ma:ma,ten:d.ten||''};
+          GIA=Number(d.gia)||GIA_GOC;
+          nhoMa(ma);
+          if(gtGhiChu) gtGhiChu.textContent=GHI_CHU_GOC;
+        }else{
+          VOUCHER={ma:'',ten:''};
+          GIA=GIA_GOC;
+          if(tuGo&&gtGhiChu) gtGhiChu.textContent='Mã này không áp dụng được. Bạn vẫn đăng ký bình thường với giá gốc.';
+        }
+        veLaiGia();
+      })
+      .catch(function(){ VOUCHER={ma:'',ten:''}; GIA=GIA_GOC; veLaiGia(); });
+  }
+
+  (function doMaMoi(){
+    var q=new URLSearchParams(location.search);
+    var ma=q.get('gt')||q.get('v')||maDaNho();
+    if(!ma) return;
+    if(gtEl) gtEl.value=String(ma).toUpperCase().replace(/[^A-Z0-9]/g,'');
+    kiemTraMa(ma,false);
+  })();
+
+  if(gtEl){
+    gtEl.addEventListener('blur',function(){ kiemTraMa(gtEl.value,true); });
+    gtEl.addEventListener('input',function(){ if(gtGhiChu) gtGhiChu.textContent=GHI_CHU_GOC; });
   }
 
   form.addEventListener('submit',async function(e){
@@ -994,7 +1100,10 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
 
     // Ma don = prefix + SDT da chuan hoa. He doi soat khop theo prefix nay, va cham mot ky tu
     // la don khong duoc nhan dien - dung sua rieng mot ben.
-    var maDon = 'PNVM' + phone;
+    // PNVMV = don co uu dai gioi thieu (nguong 799.000d), PNVM = gia thuong (999.000d).
+    // Day moi chi la DE NGHI: api/lead.js tra lai ma mot lan nua va tu dung lai ma don, nen
+    // neu uu dai het suat trong luc khach dang dien form thi may chu ha ve PNVM.
+    var maDon = (VOUCHER.ma ? 'PNVMV' : 'PNVM') + phone;
     var diaChi = addressEl ? addressEl.value.trim() : '';
 
     // KHONG goi /api/lead o day. Do 09/09: no mat 7-16 giay (Apps Script ~3s + DDCC + GetResponse
@@ -1007,6 +1116,7 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
       localStorage.setItem('pnvm_order', JSON.stringify({
         code: maDon, name: name, phone: phone, email: emailValue, address: diaChi,
         amount: GIA, link: layLinkNguon(),
+        gt: VOUCHER.ma, gtTen: VOUCHER.ten,  // ma gioi thieu, de trang thanh toan gui kem
         t: '', masohv: '', paymentCode: ''   // trang thanh toan goi /api/lead roi dien not
       }));
     } catch (e) {}

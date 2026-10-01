@@ -113,6 +113,9 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
       </div>
       <p class="note note-warn"><b>Giữ nguyên nội dung chuyển khoản.</b> Sửa nội dung thì hệ thống không nhận ra đơn của bạn, và bạn sẽ phải chờ xử lý tay.</p>
       <p class="note note-err hide" id="thieu-tien"></p>
+      <!-- Hien khi may chu bao uu dai gioi thieu khong con ap dung duoc cho don nay. Khong
+           giai thich dai dong, chi nhac khach dung dung so tien va noi dung DANG HIEN o tren. -->
+      <p class="note note-warn hide" id="doi-gia"><b>Ưu đãi giới thiệu không áp dụng được cho đơn này.</b> Số tiền và nội dung chuyển khoản ở trên đã được cập nhật — bạn chuyển đúng theo thông tin đang hiển thị.</p>
       <div class="status"><span class="dot"></span><span id="trang-thai">Đang chờ nhận tiền…</span></div>
     </div>
     <a class="back" href="index.html">← Quay lại trang khoá học</a>
@@ -139,6 +142,9 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
   var API='https://cdp-proxy-pnvm.vercel.app';
   var BIN='970422', ACC='887768888', NAME='CT TNHH MTV VIEN PHAT TRIEN THE CHAT VA TRI TUE';
   var KHOA='pnvm_order';
+  // Gia goc. Dung khi may chu bao uu dai gioi thieu khong ap dung duoc va don bi ha ve gia thuong.
+  // Doi gia khoa thi sua CA day, index.html, VA MIN_AMOUNT trong lib/reconcile.js cua proxy.
+  var GIA_GOC=999000;
 
   var don=null;
   try{ don=JSON.parse(localStorage.getItem(KHOA)||sessionStorage.getItem(KHOA)||'null'); }catch(_e){}
@@ -153,22 +159,35 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
   if(!don||!don.code){ hien('khong-co'); return; }
 
   // ── Dựng màn hình chuyển khoản ──────────────────────────────────────────────
-  var soTien=Number(don.amount)||0;
-  el('so-tien').textContent=soTien.toLocaleString('vi-VN')+'đ';
-  el('noi-dung').textContent=don.code;
-  el('chep-nd').setAttribute('data-copy',don.code);
-  el('qr').src='https://img.vietqr.io/image/'+BIN+'-'+ACC+'-compact2.png?amount='+soTien
-    +'&addInfo='+encodeURIComponent(don.code)+'&accountName='+encodeURIComponent(NAME);
+  // Vẽ trong MỘT hàm vì màn hình này có thể phải vẽ lại: khách vào bằng mã giới thiệu nhưng
+  // đến lúc /api/lead chốt thì mã vừa hết suất, máy chủ hạ đơn về giá thường và đổi mã đơn.
+  // Vẽ lại là bắt buộc — để nguyên QR cũ thì khách chuyển 799.000đ cho một mã đơn cần 999.000đ,
+  // hệ đối soát coi là trả thiếu và đơn không bao giờ được chốt.
+  var soTien=0;
+  function veManTra(){
+    soTien=Number(don.amount)||0;
+    el('so-tien').textContent=soTien.toLocaleString('vi-VN')+'đ';
+    el('noi-dung').textContent=don.code;
+    el('chep-nd').setAttribute('data-copy',don.code);
+    el('qr').src='https://img.vietqr.io/image/'+BIN+'-'+ACC+'-compact2.png?amount='+soTien
+      +'&addInfo='+encodeURIComponent(don.code)+'&accountName='+encodeURIComponent(NAME);
+  }
+  veManTra();
   hien('man-tra');
 
   // Pixel: InitiateCheckout — khách đã tới bước chuyển khoản. Mỗi đơn 1 lần để F5 không đếm thừa.
-  var coIC='pnvm_ic_'+don.code;
-  try{
-    if(!localStorage.getItem(coIC) && typeof fbq==='function'){
-      fbq('track','InitiateCheckout',{value:soTien,currency:'VND',content_name:'chuyen-vien-phu-nu-vien-man'});
-      localStorage.setItem(coIC,'1');
-    }
-  }catch(_e){}
+  function banIC(){
+    var coIC='pnvm_ic_'+don.code;
+    try{
+      if(!localStorage.getItem(coIC) && typeof fbq==='function'){
+        fbq('track','InitiateCheckout',{value:soTien,currency:'VND',content_name:'chuyen-vien-phu-nu-vien-man'});
+        localStorage.setItem(coIC,'1');
+      }
+    }catch(_e){}
+  }
+  // Đơn có mã giới thiệu thì ĐỢI máy chủ chốt xong mới bắn, vì số tiền còn có thể đổi — bắn sớm
+  // là báo Meta sai 200.000đ. Đơn thường thì bắn ngay, không có gì phải đợi.
+  if(!don.gt) banIC();
 
   document.querySelectorAll('.copy').forEach(function(b){
     b.addEventListener('click',function(){
@@ -186,21 +205,35 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
   // Gọi ở đây, trong lúc khách đang đọc mã QR — mã QR không phụ thuộc lời gọi này.
   // Gọi xong mới có `t` (chữ ký) để hỏi /api/check, nên việc dò tiền bắt đầu sau.
   function ghiNhanDon(xongThi){
-    if(don.t){ xongThi(); return; }   // đã ghi rồi — khách F5 lại trang, đừng ghi lần hai
+    if(don.t){ banIC(); xongThi(); return; }   // đã ghi rồi — khách F5 lại trang, đừng ghi lần hai
     fetch(API+'/api/lead',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         name:don.name, phone:don.phone, email:don.email, address:don.address,
-        code:don.code, stage:'dang_ky', source:'pnvm', link:don.link
+        code:don.code, stage:'dang_ky', source:'pnvm', link:don.link,
+        gt:don.gt||''   // mã giới thiệu; máy chủ tra lại rồi tự dựng mã đơn
       })
     }).then(function(r){ return r.json(); }).then(function(d){
       if(d){
         don.t=d.t||''; don.masohv=d.masohv||''; don.paymentCode=d.paymentCode||'';
+        // MÁY CHỦ MỚI LÀ BÊN CHỐT mã đơn và giá. Khác với mã đang hiện nghĩa là ưu đãi không
+        // áp dụng được (hết suất, tự giới thiệu mình, khoá đã chuyển sang khoá khác…).
+        if(d.code && d.code!==don.code){
+          don.code=d.code;
+          don.amount=(d.voucher && d.voucher.ap_dung && d.voucher.gia) ? Number(d.voucher.gia) : GIA_GOC;
+          don.gt=(d.voucher && d.voucher.ap_dung) ? don.gt : '';
+          veManTra();
+          // Nói rõ cho khách biết. Im lặng đổi số tiền là cách nhanh nhất để khách chuyển theo
+          // con số họ vừa nhìn thấy (hoặc vừa chụp màn hình) rồi thành trả thiếu.
+          var bao=el('doi-gia');
+          if(bao){ bao.classList.remove('hide'); }
+        }
         try{ localStorage.setItem(KHOA,JSON.stringify(don)); }catch(_e){}
         if(don.masohv){ el('mahv').textContent=don.masohv; el('khoi-mahv').classList.remove('hide'); }
       }
-    }).catch(function(e){ console.error('Loi ghi nhan don:',e); })
+      banIC();
+    }).catch(function(e){ console.error('Loi ghi nhan don:',e); banIC(); })
       .then(function(){ xongThi(); });
   }
 
@@ -240,7 +273,10 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
         method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,
         body:JSON.stringify({
           name:don.name,phone:don.phone,email:don.email,address:don.address,
-          code:don.code,stage:'da_thanh_toan',source:'pnvm',link:don.link,
+          // gt gửi kèm để Sheet ghi mã giới thiệu vào đúng dòng đã thanh toán. Máy chủ KHÔNG
+          // tra lại ở bước này: khách đã chuyển tiền rồi, tra lại mà mã vừa hết suất thì hoá ra
+          // đổi giá của một đơn đã trả xong.
+          code:don.code,stage:'da_thanh_toan',source:'pnvm',link:don.link,gt:don.gt||'',
           amount:d.amount,ref:d.ref,paid_at:d.at,
           // Mã đơn DDCC cấp lúc đăng ký. THIẾU nó thì máy chủ tưởng đơn mới và DDCC đẻ thêm một
           // đơn nữa cho cùng khách (trước 11/09 dòng này bị bỏ sót dù mã đã được lưu ở trên).
