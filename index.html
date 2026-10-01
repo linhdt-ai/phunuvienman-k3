@@ -1045,10 +1045,12 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
           nhoMa(ma);
           // Noi ro ai gioi thieu, ngay duoi o nhap ma — khach thay ten nguoi quen thi yen tam
           // la ma dung. Khong co ten (dong Tot nghiep thieu Ho ten) thi bao bang so tien giam.
+          VOUCHER.phut=Number(d.giuChoPhut)||90;   // lay tu may chu, dung viet cung so phut
           if(gtGhiChu){
-            gtGhiChu.textContent=VOUCHER.ten
+            gtGhiChu.textContent=(VOUCHER.ten
               ? 'Bạn được giới thiệu từ học viên "'+VOUCHER.ten+'"'
-              : 'Mã hợp lệ. Bạn được giảm '+tien(GIA_GOC-GIA)+' học phí.';
+              : 'Mã hợp lệ. Bạn được giảm '+tien(GIA_GOC-GIA)+' học phí.')
+              +' · Suất ưu đãi được giữ cho bạn trong '+VOUCHER.phut+' phút kể từ khi đăng ký.';
           }
         }else{
           VOUCHER={ma:'',ten:''};
@@ -1128,7 +1130,7 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
       localStorage.setItem('pnvm_order', JSON.stringify({
         code: maDon, name: name, phone: phone, email: emailValue, address: diaChi,
         amount: GIA, link: layLinkNguon(),
-        gt: VOUCHER.ma, gtTen: VOUCHER.ten,  // ma gioi thieu, de trang thanh toan gui kem
+        gt: VOUCHER.ma, gtTen: VOUCHER.ten, gtPhut: VOUCHER.phut || 90,  // ma gioi thieu + so phut giu cho
         t: '', masohv: '', paymentCode: ''   // trang thanh toan goi /api/lead roi dien not
       }));
     } catch (e) {}

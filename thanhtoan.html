@@ -113,6 +113,9 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
       </div>
       <p class="note note-warn"><b>Giữ nguyên nội dung chuyển khoản.</b> Sửa nội dung thì hệ thống không nhận ra đơn của bạn, và bạn sẽ phải chờ xử lý tay.</p>
       <p class="note note-err hide" id="thieu-tien"></p>
+      <!-- Chi hien khi don co ma gioi thieu. Nhac khach chuyen som vi suat uu dai chi duoc giu
+           mot khoang thoi gian roi nha cho nguoi khac. -->
+      <p class="note hide" id="giu-cho"></p>
       <!-- Hien khi may chu bao uu dai gioi thieu khong con ap dung duoc cho don nay. Khong
            giai thich dai dong, chi nhac khach dung dung so tien va noi dung DANG HIEN o tren. -->
       <p class="note note-warn hide" id="doi-gia"><b>Ưu đãi giới thiệu không áp dụng được cho đơn này.</b> Số tiền và nội dung chuyển khoản ở trên đã được cập nhật — bạn chuyển đúng theo thông tin đang hiển thị.</p>
@@ -174,6 +177,17 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
   }
   veManTra();
   hien('man-tra');
+
+  // Suất ưu đãi giới thiệu được giữ có thời hạn — nói cho khách biết để họ chuyển sớm.
+  // Số phút lấy từ đơn (do /api/moi trả về lúc đăng ký), không viết cứng ở đây.
+  if(don.gt){
+    var oGiu=el('giu-cho');
+    if(oGiu){
+      oGiu.innerHTML='<b>Suất ưu đãi của bạn đang được giữ trong '+(Number(don.gtPhut)||90)+
+        ' phút.</b> Quá thời gian này, suất có thể được nhường cho người khác.';
+      oGiu.classList.remove('hide');
+    }
+  }
 
   // Pixel: InitiateCheckout — khách đã tới bước chuyển khoản. Mỗi đơn 1 lần để F5 không đếm thừa.
   function banIC(){
