@@ -1014,8 +1014,8 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
       bang.classList.toggle('hide',!coUuDai);
       if(coUuDai){
         bang.innerHTML=VOUCHER.ten
-          ? 'Bạn được giới thiệu từ học viên <b>'+VOUCHER.ten.replace(/[<>&]/g,'')+'</b> nên được giảm <b>'+tien(GIA_GOC-GIA)+'</b> học phí.'
-          : 'Bạn có mã giới thiệu hợp lệ nên được giảm <b>'+tien(GIA_GOC-GIA)+'</b> học phí.';
+          ? 'Bạn được giới thiệu từ học viên <b>'+VOUCHER.ten.replace(/[<>&]/g,'')+'</b> nên được giảm <b>20%</b> học phí.'
+          : 'Bạn có mã giới thiệu hợp lệ nên được giảm <b>20%</b> học phí.';
       }
     }
     if(gtEl) gtEl.classList.toggle('co-uu-dai',coUuDai);
@@ -1049,7 +1049,7 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
           if(gtGhiChu){
             gtGhiChu.textContent=(VOUCHER.ten
               ? 'Bạn được giới thiệu từ học viên "'+VOUCHER.ten+'"'
-              : 'Mã hợp lệ. Bạn được giảm '+tien(GIA_GOC-GIA)+' học phí.')
+              : 'Mã hợp lệ. Bạn được giảm 20% học phí.')
               +' · Suất ưu đãi được giữ cho bạn trong '+VOUCHER.phut+' phút kể từ khi đăng ký.';
           }
         }else{
