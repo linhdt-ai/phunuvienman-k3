@@ -1014,7 +1014,7 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
       bang.classList.toggle('hide',!coUuDai);
       if(coUuDai){
         bang.innerHTML=VOUCHER.ten
-          ? 'Bạn được <b>'+VOUCHER.ten.replace(/[<>&]/g,'')+'</b> giới thiệu nên được giảm <b>'+tien(GIA_GOC-GIA)+'</b> học phí.'
+          ? 'Bạn được giới thiệu từ học viên <b>'+VOUCHER.ten.replace(/[<>&]/g,'')+'</b> nên được giảm <b>'+tien(GIA_GOC-GIA)+'</b> học phí.'
           : 'Bạn có mã giới thiệu hợp lệ nên được giảm <b>'+tien(GIA_GOC-GIA)+'</b> học phí.';
       }
     }
@@ -1043,11 +1043,23 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
           VOUCHER={ma:ma,ten:d.ten||''};
           GIA=Number(d.gia)||GIA_GOC;
           nhoMa(ma);
-          if(gtGhiChu) gtGhiChu.textContent=GHI_CHU_GOC;
+          // Noi ro ai gioi thieu, ngay duoi o nhap ma — khach thay ten nguoi quen thi yen tam
+          // la ma dung. Khong co ten (dong Tot nghiep thieu Ho ten) thi bao bang so tien giam.
+          if(gtGhiChu){
+            gtGhiChu.textContent=VOUCHER.ten
+              ? 'Bạn được giới thiệu từ học viên "'+VOUCHER.ten+'"'
+              : 'Mã hợp lệ. Bạn được giảm '+tien(GIA_GOC-GIA)+' học phí.';
+          }
         }else{
           VOUCHER={ma:'',ten:''};
           GIA=GIA_GOC;
-          if(tuGo&&gtGhiChu) gtGhiChu.textContent='Mã này không áp dụng được. Bạn vẫn đăng ký bình thường với giá gốc.';
+          try{ localStorage.removeItem(GT_KEY); }catch(e){}   // ma da chet thi dung nho nua
+          if(gtGhiChu) gtGhiChu.textContent=tuGo
+            ? 'Mã này không áp dụng được. Bạn vẫn đăng ký bình thường với giá gốc.'
+            : GHI_CHU_GOC;
+          // Ma tu dien (tu link hoac tu bo nho) ma khong dung duoc thi xoa khoi o luon, de khach
+          // khong ngoi nhin mot ma la lung trong o roi thac mac sao minh khong duoc giam.
+          if(!tuGo&&gtEl) gtEl.value='';
         }
         veLaiGia();
       })
