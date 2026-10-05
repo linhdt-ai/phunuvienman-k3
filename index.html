@@ -827,11 +827,13 @@ src="https://www.facebook.com/tr?id=1969118813618077&ev=PageView&noscript=1"
           <label for="address">Địa chỉ của bạn</label>
           <input type="text" id="address" name="address" placeholder="Theo địa giới hành chính mới">
         </div>
-        <!-- O go tay, danh cho khach copy link moi bi rot mat duoi (hay gap khi gui qua Zalo).
-             Vao bang link co ?gt= thi JS tu dien san o nay. -->
-        <div class="form-group">
-          <label for="gioithieu">Mã giới thiệu <span style="color:#999;font-weight:400;">(nếu có)</span></label>
-          <input type="text" id="gioithieu" name="gioithieu" placeholder="Nhập mã của người giới thiệu" autocomplete="off" maxlength="12">
+        <!-- 05/10/2026: BO O GO TAY. Ma moi chi vao bang link ?gt=MA (hoac ma da nho tu link do).
+             Link chinh khong hien o nay nua: hien cho moi nguoi thi khach mua gia goc di xin ma
+             khap nhom Zalo, va khach go tay roi bam Dang ky ngay thi don di len truoc khi tra ma
+             xong (don 11:16 ngay 05/10 mat uu dai vi vay). JS chi mo khoi nay khi ma hop le. -->
+        <div class="form-group hide" id="khoi-gt">
+          <label for="gioithieu">Mã giới thiệu</label>
+          <input type="text" id="gioithieu" name="gioithieu" autocomplete="off" maxlength="12" readonly>
           <div class="ghi-chu" id="gt-ghi-chu">Học viên đã tốt nghiệp có thể giới thiệu tối đa 2 người.</div>
         </div>
         <button type="submit" class="btn" id="submitBtn">ĐĂNG KÝ</button>
@@ -994,7 +996,6 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
   // con sua duoc, chu bao gia giam ma may chu khong cong nhan la khach chuyen tien roi mac ket.
   var gtEl=document.getElementById('gioithieu');
   var gtGhiChu=document.getElementById('gt-ghi-chu');
-  var GHI_CHU_GOC=gtGhiChu?gtGhiChu.textContent:'';
 
   function tien(n){ return Number(n).toLocaleString('vi-VN')+'đ'; }
 
@@ -1031,19 +1032,22 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
     return '';
   }
 
-  // tuGo = khach tu danh ma vao o (khac voi vao bang link). Chi luc do moi bao "khong dung duoc";
-  // vao bang link het han thi im lang giu gia thuong, dung nhu da chot.
-  function kiemTraMa(ma,tuGo){
+  // Chi con mot nguon ma: link ?gt=MA (hoac ma da nho tu link do trong 7 ngay). Khong con o go tay.
+  // dangKiemMa = lan tra dang chay do. Nut Dang ky PHAI cho no xong: khach bam ngay khi trang vua
+  // mo thi VOUCHER con rong, don di len gia goc du link moi hoan toan hop le.
+  var khoiGt=document.getElementById('khoi-gt');
+  var dangKiemMa=null;
+  function kiemTraMa(ma){
     ma=String(ma||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-    if(!ma){ VOUCHER={ma:'',ten:''}; GIA=GIA_GOC; veLaiGia(); return; }
-    fetch(PROXY+'/api/moi?ma='+encodeURIComponent(ma))
+    if(!ma){ VOUCHER={ma:'',ten:''}; GIA=GIA_GOC; veLaiGia(); return Promise.resolve(); }
+    dangKiemMa=fetch(PROXY+'/api/moi?ma='+encodeURIComponent(ma))
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d&&d.hopLe){
           VOUCHER={ma:ma,ten:d.ten||''};
           GIA=Number(d.gia)||GIA_GOC;
           nhoMa(ma);
-          // Noi ro ai gioi thieu, ngay duoi o nhap ma — khach thay ten nguoi quen thi yen tam
+          // Noi ro ai gioi thieu, ngay duoi o ma — khach thay ten nguoi quen thi yen tam
           // la ma dung. Khong co ten (dong Tot nghiep thieu Ho ten) thi bao bang so tien giam.
           VOUCHER.phut=Number(d.giuChoPhut)||90;   // lay tu may chu, dung viet cung so phut
           if(gtGhiChu){
@@ -1052,34 +1056,28 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
               : 'Mã hợp lệ. Bạn được giảm 20% học phí.')
               +' · Suất ưu đãi được giữ cho bạn trong '+VOUCHER.phut+' phút kể từ khi đăng ký.';
           }
+          if(gtEl) gtEl.value=ma;
+          if(khoiGt) khoiGt.classList.remove('hide');
         }else{
+          // Ma het suat / het khoa / sai: im lang giu gia thuong, giau khoi ma di.
           VOUCHER={ma:'',ten:''};
           GIA=GIA_GOC;
           try{ localStorage.removeItem(GT_KEY); }catch(e){}   // ma da chet thi dung nho nua
-          if(gtGhiChu) gtGhiChu.textContent=tuGo
-            ? 'Mã này không áp dụng được. Bạn vẫn đăng ký bình thường với giá gốc.'
-            : GHI_CHU_GOC;
-          // Ma tu dien (tu link hoac tu bo nho) ma khong dung duoc thi xoa khoi o luon, de khach
-          // khong ngoi nhin mot ma la lung trong o roi thac mac sao minh khong duoc giam.
-          if(!tuGo&&gtEl) gtEl.value='';
+          if(gtEl) gtEl.value='';
+          if(khoiGt) khoiGt.classList.add('hide');
         }
         veLaiGia();
       })
-      .catch(function(){ VOUCHER={ma:'',ten:''}; GIA=GIA_GOC; veLaiGia(); });
+      .catch(function(){ VOUCHER={ma:'',ten:''}; GIA=GIA_GOC; veLaiGia(); })
+      .then(function(){ dangKiemMa=null; });
+    return dangKiemMa;
   }
 
   (function doMaMoi(){
     var q=new URLSearchParams(location.search);
     var ma=q.get('gt')||q.get('v')||maDaNho();
-    if(!ma) return;
-    if(gtEl) gtEl.value=String(ma).toUpperCase().replace(/[^A-Z0-9]/g,'');
-    kiemTraMa(ma,false);
+    if(ma) kiemTraMa(ma);
   })();
-
-  if(gtEl){
-    gtEl.addEventListener('blur',function(){ kiemTraMa(gtEl.value,true); });
-    gtEl.addEventListener('input',function(){ if(gtGhiChu) gtGhiChu.textContent=GHI_CHU_GOC; });
-  }
 
   form.addEventListener('submit',async function(e){
     e.preventDefault();
@@ -1105,6 +1103,12 @@ document.querySelectorAll('.carousel-btn').forEach(function(btn){
     // Phan hoi TUC THI. Khong co dong nay khach bam xong thay nut im lim, tuong hong,
     // bam lai may lan (bao cao that 09/09).
     submitBtn.textContent='Đang mở trang chuyển khoản…';
+
+    // Link moi ma tra chua xong thi cho, toi da 6 giay. Qua 6 giay (mang yeu, API treo) thi di
+    // tiep voi gia dang hien — khong duoc de nut chet cung vi mot loi goi phu.
+    if(dangKiemMa){
+      await Promise.race([dangKiemMa, new Promise(function(r){ setTimeout(r,6000); })]);
+    }
 
     // Meta Pixel - ghi nhan hoan tat dang ky (kem gia tri don hang de toi uu theo value/tinh ROAS).
     // Day KHONG phai su kien mua hang: trang thanh toan ban Purchase khi tien that su ve.
