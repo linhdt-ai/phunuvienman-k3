@@ -8,7 +8,9 @@
        pay.html?name={{Họ tên}}&phone={{SĐT}}&email={{Email}}&pid={{ID khách}}&page_pid={{ID page}}
      pid/page_pid BẮT BUỘC: khi tiền về, máy chủ (api/lead.js + lib/reconcile.js → toSmax) gửi lại
      hai mã này cho trigger SMax để bot nhắn "Đã thanh toán" vào đúng cuộc chat của khách.
-     Giá, mã đơn (PNVM<sđt>), đối soát, chữ ký /api/check đều DÙNG CHUNG với thanhtoan.html. -->
+     Mã đơn RIÊNG PNVMMS<sđt> (Sheet, tin Zalo, sao kê nhìn là biết đơn Messenger). Giá, đối soát,
+     chữ ký /api/check DÙNG CHUNG với thanhtoan.html. Đổi tiền tố thì phải đổi cả proxy
+     (api/lead.js + lib/reconcile.js), máy chủ mới là bên dựng mã đơn. -->
 <meta name="robots" content="noindex,nofollow">
 <title>Thanh toán học phí - Chuyên viên Phụ nữ Viên mãn K6</title>
 <script>
@@ -209,7 +211,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   var cu=null; try{ cu=JSON.parse(localStorage.getItem(KHOA)||'null'); }catch(_e){}
   var don=null, tuForm=false;
   function taoDon(name,phone,email){
-    var code='PNVM'+phone;
+    var code='PNVMMS'+phone;
     // Cùng khách mở lại link: giữ chữ ký/mã DDCC đã có, khỏi ghi nhận lần hai.
     if(cu&&cu.code===code){ cu.name=name||cu.name; cu.email=email||cu.email;
       cu.pid=q.pid||cu.pid; cu.page_pid=q.page_pid||cu.page_pid; return cu; }
@@ -239,13 +241,17 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
     batDau();
   });
 
-  function batDau(){
-    luu();
+  function veQR(){
     el('so-tien').textContent=tien(don.amount);
     el('noi-dung').textContent=don.code;
     el('chep-nd').setAttribute('data-copy',don.code);
     el('qr').src='https://img.vietqr.io/image/'+BIN+'-'+ACC+'-compact2.png?amount='+don.amount
       +'&addInfo='+encodeURIComponent(don.code)+'&accountName='+encodeURIComponent(NAME);
+  }
+
+  function batDau(){
+    luu();
+    veQR();
     el('ten-xong').textContent=don.name||'bạn';
     hien('man-tra');
     // Chỉ cuộn khi khách vừa điền form; vào từ link SMax thì để yên cho khách đọc lịch + học phí trước.
@@ -286,7 +292,10 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
     }).then(function(r){ return r.json(); }).then(function(d){
       clearTimeout(hen);
       if(d){ don.t=d.t||''; don.masohv=d.masohv||''; don.paymentCode=d.paymentCode||'';
-             if(d.code) don.code=d.code; luu(); }
+             // Máy chủ là bên chốt mã đơn. Khác mã đang hiện thì vẽ lại QR ngay, kẻo khách chuyển
+             // theo mã cũ còn trang lại dò mã mới.
+             if(d.code && d.code!==don.code){ don.code=d.code; veQR(); }
+             luu(); }
       xongThi();
     }).catch(function(){
       clearTimeout(hen);
