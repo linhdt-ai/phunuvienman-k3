@@ -187,6 +187,9 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   var API='https://cdp-proxy-pnvm.vercel.app';
   var BIN='970422', ACC='887768888', NAME='CT TNHH MTV VIEN PHAT TRIEN THE CHAT VA TRI TUE';
   var GIA=999000;
+  // ⚠️ GIÁ THỬ TẠM 2.000đ cho cả luồng Messenger (13/10/2026), tự hết hạn cùng mốc với giaMess()
+  // trong lib/reconcile.js của proxy. Máy chủ vẫn là bên chốt: /api/lead trả `gia`, khác thì vẽ lại.
+  if(Date.now()<Date.parse('2026-10-14T23:59:59+07:00')) GIA=2000;
   var KHOA='pnvm_mess_order';   // khác khoá của thanhtoan.html để hai luồng không đè đơn của nhau
   // Link gửi sang CDP/Sheet: KHÔNG dùng location.href (đã xoá tham số, mà có cũng chứa SĐT/email).
   var LINK='https://daotao.phunuvienman.vn/pay.html?utm_source=messenger&utm_medium=smax';
@@ -213,7 +216,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   function taoDon(name,phone,email){
     var code='PNVMMS'+phone;
     // Cùng khách mở lại link: giữ chữ ký/mã DDCC đã có, khỏi ghi nhận lần hai.
-    if(cu&&cu.code===code){ cu.name=name||cu.name; cu.email=email||cu.email;
+    if(cu&&cu.code===code){ cu.amount=GIA; cu.name=name||cu.name; cu.email=email||cu.email;
       cu.pid=q.pid||cu.pid; cu.page_pid=q.page_pid||cu.page_pid; return cu; }
     return {code:code,name:name,phone:phone,email:email,pid:q.pid||'',page_pid:q.page_pid||'',
             amount:GIA,t:'',masohv:'',paymentCode:''};
@@ -295,6 +298,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
              // Máy chủ là bên chốt mã đơn. Khác mã đang hiện thì vẽ lại QR ngay, kẻo khách chuyển
              // theo mã cũ còn trang lại dò mã mới.
              if(d.code && d.code!==don.code){ don.code=d.code; veQR(); }
+             if(d.gia && Number(d.gia)!==don.amount){ don.amount=Number(d.gia); el('hoc-phi').textContent=tien(don.amount); veQR(); }
              luu(); }
       xongThi();
     }).catch(function(){
