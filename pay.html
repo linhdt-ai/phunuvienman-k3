@@ -116,6 +116,14 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
 .mahv{display:inline-block;background:var(--ok-soft);color:var(--ok);font-weight:700;font-size:20px;
   letter-spacing:.08em;padding:8px 20px;border-radius:100px;margin:10px 0;font-variant-numeric:tabular-nums;}
 .ve-mess{margin-top:14px;background:var(--tim-soft);color:var(--tim);border-radius:14px;padding:14px;font-weight:600;}
+.mahv-top{text-align:center;background:#fff;border:2px solid var(--ok);border-radius:var(--radius-lg);
+  padding:16px 14px;margin:0 0 16px;box-shadow:0 6px 18px rgba(13,107,80,.12);}
+.mahv-top .nhan{font-weight:700;color:var(--ok);font-size:15px;letter-spacing:.02em;}
+.mahv-top .so{font-size:clamp(30px,9vw,40px);font-weight:800;color:var(--ok);letter-spacing:.14em;line-height:1.2;margin:4px 0;
+  font-variant-numeric:tabular-nums;}
+.mahv-top .so.cho{font-size:16px;letter-spacing:0;font-weight:600;color:var(--text-soft);}
+.mahv-top .ghi{font-size:13.5px;color:var(--text-soft);}
+.nhom-tt{font-weight:700;color:var(--primary-dark);font-size:15px;margin:18px 0 8px;}
 .hide{display:none!important;}
 </style>
 </head>
@@ -124,6 +132,14 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   <div class="brand"><img src="img/logo-vien.webp" width="295" height="81" alt="Viện Phát triển Thể chất và Trí tuệ"></div>
   <img class="ten-khoa" src="img/hero-ten-khoa.webp" width="1209" height="261" alt="Khóa học truyền nghề Chuyên viên Phụ nữ Viên mãn">
   <span class="khoa-pill">Khóa 6 · Khai giảng 11/11/2026</span>
+
+  <!-- MÃ HỌC VIÊN: DDCC cấp ngay lúc ghi nhận đăng ký (/api/lead trả masohv). Chưa có thì hiện
+       "đang cấp"; DDCC không trả mã thì giấu cả khối, không bắt khách nhìn ô trống. -->
+  <div id="khoi-mahv-top" class="mahv-top hide">
+    <div class="nhan">MÃ HỌC VIÊN CỦA BẠN</div>
+    <div class="so cho" id="mahv-top">Đang cấp mã…</div>
+    <div class="ghi">Lưu lại mã này để dùng trong suốt quá trình học.</div>
+  </div>
 
   <!-- Lịch học: đổi khoá thì sửa khối này (cùng lúc với index.html, thankyou.html). -->
   <div class="card" style="margin-top:28px">
@@ -155,6 +171,13 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
     <h1>Quét mã để thanh toán</h1>
     <p class="sub">Hệ thống tự nhận tiền, bạn không cần gửi biên lai.</p>
     <img id="qr" class="qr" alt="Mã QR chuyển khoản học phí" width="280" height="280">
+    <div class="nhom-tt">Thông tin của bạn</div>
+    <div class="rows">
+      <div class="row"><span>Họ và tên</span><b id="kh-ten"></b></div>
+      <div class="row"><span>Số điện thoại</span><b id="kh-sdt"></b></div>
+      <div class="row"><span>Email</span><b id="kh-email"></b></div>
+    </div>
+    <div class="nhom-tt">Thông tin chuyển khoản</div>
     <div class="rows">
       <div class="row"><span>Ngân hàng</span><b>MB Bank</b></div>
       <div class="row"><span>Số tài khoản</span><b>887768888</b><button class="copy" data-copy="887768888">Chép</button></div>
@@ -252,9 +275,19 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
       +'&addInfo='+encodeURIComponent(don.code)+'&accountName='+encodeURIComponent(NAME);
   }
 
+  function veMaHV(dangCho){
+    if(don.masohv){ el('mahv-top').textContent=don.masohv; el('mahv-top').classList.remove('cho'); hien('khoi-mahv-top'); }
+    else if(dangCho){ hien('khoi-mahv-top'); }
+    else { an('khoi-mahv-top'); }
+  }
+
   function batDau(){
     luu();
     veQR();
+    el('kh-ten').textContent=don.name||'—';
+    el('kh-sdt').textContent=don.phone||'—';
+    el('kh-email').textContent=don.email||'(chưa có)';
+    veMaHV(!don.t);   // đơn mới: hiện "đang cấp"; đơn cũ (F5) có mã thì hiện luôn
     el('ten-xong').textContent=don.name||'bạn';
     hien('man-tra');
     // Chỉ cuộn khi khách vừa điền form; vào từ link SMax thì để yên cho khách đọc lịch + học phí trước.
@@ -298,11 +331,13 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
              // Máy chủ là bên chốt mã đơn. Khác mã đang hiện thì vẽ lại QR ngay, kẻo khách chuyển
              // theo mã cũ còn trang lại dò mã mới.
              if(d.code && d.code!==don.code){ don.code=d.code; veQR(); }
+             veMaHV(false);
              if(d.gia && Number(d.gia)!==don.amount){ don.amount=Number(d.gia); el('hoc-phi').textContent=tien(don.amount); veQR(); }
              luu(); }
       xongThi();
     }).catch(function(){
       clearTimeout(hen);
+      if(lanThu>=1) veMaHV(false);
       // Một lần thử lại sau 4 giây (mạng chập); vẫn hỏng thì cứ dò tiền — hệ đối soát vẫn bắt đơn.
       if(lanThu<1) setTimeout(function(){ ghiNhanDon(lanThu+1,xongThi); },4000);
       else xongThi();
