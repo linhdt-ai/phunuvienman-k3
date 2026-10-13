@@ -210,9 +210,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   var API='https://cdp-proxy-pnvm.vercel.app';
   var BIN='970422', ACC='887768888', NAME='CT TNHH MTV VIEN PHAT TRIEN THE CHAT VA TRI TUE';
   var GIA=999000;
-  // ⚠️ GIÁ THỬ TẠM 2.000đ cho cả luồng Messenger (13/10/2026), tự hết hạn cùng mốc với giaMess()
-  // trong lib/reconcile.js của proxy. Máy chủ vẫn là bên chốt: /api/lead trả `gia`, khác thì vẽ lại.
-  if(Date.now()<Date.parse('2026-10-14T23:59:59+07:00')) GIA=2000;
+  // Máy chủ là bên chốt giá: /api/lead trả `gia`, khác số này thì trang vẽ lại QR.
   var KHOA='pnvm_mess_order';   // khác khoá của thanhtoan.html để hai luồng không đè đơn của nhau
   // Link gửi sang CDP/Sheet: KHÔNG dùng location.href (đã xoá tham số, mà có cũng chứa SĐT/email).
   var LINK='https://daotao.phunuvienman.vn/pay.html?utm_source=messenger&utm_medium=smax';
