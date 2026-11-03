@@ -194,6 +194,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   <div id="man-xong" class="card done hide">
     <div class="tick">✓</div>
     <h2>Đã nhận học phí</h2>
+    <p class="hide" id="da-tra-truoc" style="color:var(--text-soft);margin-bottom:6px">Số điện thoại này đã thanh toán học phí Khóa 6 trước đó, bạn không cần chuyển khoản thêm.</p>
     <p style="color:var(--text-soft)">Chúc mừng <b id="ten-xong">bạn</b> đã là học viên Khóa 6.</p>
     <div id="khoi-mahv" class="hide">
       <p style="font-size:14.2px;color:var(--text-soft);margin-top:12px">Mã học viên của bạn</p>
@@ -309,6 +310,8 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
       }
     }catch(_e){}
 
+    // Đơn đã được máy chủ báo "đã trả trên landing" từ lần mở trước → hiện luôn, khỏi gọi lại.
+    if(don.daTraTruoc){ hienDaTraTruoc(); return; }
     ghiNhanDon(0,function(){ batDauDo(); });
   }
 
@@ -325,6 +328,12 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
         stage:'dang_ky',source:'messenger',nogr:true,pid:don.pid,page_pid:don.page_pid,link:LINK})
     }).then(function(r){ return r.json(); }).then(function(d){
       clearTimeout(hen);
+      // Máy chủ thấy SĐT này ĐÃ trả trên landing (lib/don-cung-sdt.js): không có đơn mới, không
+      // dò tiền, không bắn Purchase (lượt mua đã được đếm ở landing). Máy chủ đã tự báo SMax.
+      if(d && d.daThanhToan){
+        don.daTraTruoc=true; don.masohv=d.masohv||don.masohv; if(d.code) don.code=d.code;
+        luu(); hienDaTraTruoc(); return;
+      }
       if(d){ don.t=d.t||''; don.masohv=d.masohv||''; don.paymentCode=d.paymentCode||'';
              // Máy chủ là bên chốt mã đơn. Khác mã đang hiện thì vẽ lại QR ngay, kẻo khách chuyển
              // theo mã cũ còn trang lại dò mã mới.
@@ -368,6 +377,14 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
         }
         if(lan>48) el('trang-thai').textContent='Vẫn đang chờ. Ngân hàng đôi khi chậm vài phút, bạn cứ để yên trang này.';
       }).catch(function(){});
+  }
+
+  function hienDaTraTruoc(){
+    xong=true; clearInterval(nhip);
+    veMaHV(false);
+    if(don.masohv){ el('mahv').textContent=don.masohv; hien('khoi-mahv'); }
+    hien('da-tra-truoc');
+    an('man-tra'); hien('man-xong');
   }
 
   function daTra(d){
