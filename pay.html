@@ -12,7 +12,7 @@
      chữ ký /api/check DÙNG CHUNG với thanhtoan.html. Đổi tiền tố thì phải đổi cả proxy
      (api/lead.js + lib/reconcile.js), máy chủ mới là bên dựng mã đơn. -->
 <meta name="robots" content="noindex,nofollow">
-<title>Thanh toán học phí - Chuyên viên Phụ nữ Viên mãn K6</title>
+<title>Thanh toán học phí - Chuyên viên Phụ nữ Viên mãn K7</title>
 <script>
 // CHẠY TRƯỚC PIXEL. Link SMax mang họ tên, SĐT, email trên URL; Pixel gửi nguyên URL trang về
 // Meta, nên phải đọc xong rồi XOÁ tham số khỏi thanh địa chỉ trước khi Pixel kịp nạp.
@@ -131,7 +131,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
 <div class="wrap">
   <div class="brand"><img src="img/logo-vien.webp" width="295" height="81" alt="Viện Phát triển Thể chất và Trí tuệ"></div>
   <img class="ten-khoa" src="img/hero-ten-khoa.webp" width="1209" height="261" alt="Khóa học truyền nghề Chuyên viên Phụ nữ Viên mãn">
-  <span class="khoa-pill">Khóa 6 · Khai giảng 11/11/2026</span>
+  <span class="khoa-pill">Khóa 7 · Khai giảng 16/12/2026</span>
 
   <!-- MÃ HỌC VIÊN: DDCC cấp ngay lúc ghi nhận đăng ký (/api/lead trả masohv). Chưa có thì hiện
        "đang cấp"; DDCC không trả mã thì giấu cả khối, không bắt khách nhìn ô trống. -->
@@ -145,14 +145,14 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   <div class="card" style="margin-top:28px">
     <div class="card-head">4 buổi nền tảng</div>
     <div class="lich">
-      <div class="buoi"><span class="buoi-tag">Buổi 1</span><span class="buoi-nd">20h00 thứ 4 ngày 11/11/2026</span></div>
-      <div class="buoi"><span class="buoi-tag">Buổi 2</span><span class="buoi-nd">20h00 thứ 5 ngày 12/11/2026</span></div>
-      <div class="buoi"><span class="buoi-tag">Buổi 3</span><span class="buoi-nd">Học Elearning (13 – 14/11)</span></div>
-      <div class="buoi"><span class="buoi-tag">Buổi 4</span><span class="buoi-nd">20h00 Chủ nhật 15/11/2026 (Tốt nghiệp)</span></div>
+      <div class="buoi"><span class="buoi-tag">Buổi 1</span><span class="buoi-nd">20h00 thứ 4 ngày 16/12/2026</span></div>
+      <div class="buoi"><span class="buoi-tag">Buổi 2</span><span class="buoi-nd">20h00 thứ 5 ngày 17/12/2026</span></div>
+      <div class="buoi"><span class="buoi-tag">Buổi 3</span><span class="buoi-nd">Học Elearning (18 – 19/12)</span></div>
+      <div class="buoi"><span class="buoi-tag">Buổi 4</span><span class="buoi-nd">20h00 Chủ nhật 20/12/2026 (Tốt nghiệp)</span></div>
     </div>
   </div>
 
-  <div class="hoc-phi"><span>Học phí:</span><b id="hoc-phi">999.000đ</b></div>
+  <div class="hoc-phi"><span>Học phí:</span><b id="hoc-phi">1.080.000đ</b></div>
 
   <!-- Link thiếu SĐT (SMax chưa thu được) → khách tự điền -->
   <div id="man-form" class="card hide">
@@ -194,8 +194,8 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   <div id="man-xong" class="card done hide">
     <div class="tick">✓</div>
     <h2>Đã nhận học phí</h2>
-    <p class="hide" id="da-tra-truoc" style="color:var(--text-soft);margin-bottom:6px">Số điện thoại này đã thanh toán học phí Khóa 6 trước đó, bạn không cần chuyển khoản thêm.</p>
-    <p style="color:var(--text-soft)">Chúc mừng <b id="ten-xong">bạn</b> đã là học viên Khóa 6.</p>
+    <p class="hide" id="da-tra-truoc" style="color:var(--text-soft);margin-bottom:6px">Số điện thoại này đã thanh toán học phí Khóa 7 trước đó, bạn không cần chuyển khoản thêm.</p>
+    <p style="color:var(--text-soft)">Chúc mừng <b id="ten-xong">bạn</b> đã là học viên Khóa 7.</p>
     <div id="khoi-mahv" class="hide">
       <p style="font-size:14.2px;color:var(--text-soft);margin-top:12px">Mã học viên của bạn</p>
       <div class="mahv" id="mahv"></div>
@@ -210,7 +210,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:22px;color:var(--primary-dark);t
   // thanhtoan.html VÀ GIA_GOC trong lib/voucher.js của proxy (ngưỡng đối soát).
   var API='https://cdp-proxy-pnvm.vercel.app';
   var BIN='970422', ACC='887768888', NAME='CT TNHH MTV VIEN PHAT TRIEN THE CHAT VA TRI TUE';
-  var GIA=999000;
+  var GIA=1080000;
   // Máy chủ là bên chốt giá: /api/lead trả `gia`, khác số này thì trang vẽ lại QR.
   var KHOA='pnvm_mess_order';   // khác khoá của thanhtoan.html để hai luồng không đè đơn của nhau
   // Link gửi sang CDP/Sheet: KHÔNG dùng location.href (đã xoá tham số, mà có cũng chứa SĐT/email).

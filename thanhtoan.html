@@ -6,7 +6,7 @@
 <!-- CHƯA CÔNG BỐ: trang này chưa được liên kết từ index.html và bị chặn lập chỉ mục.
      Bỏ dòng robots bên dưới khi chuyển sang luồng thanh toán mới. -->
 <meta name="robots" content="noindex,nofollow">
-<title>Thanh toán học phí - Chuyên viên Phụ nữ Viên mãn K6</title>
+<title>Thanh toán học phí - Chuyên viên Phụ nữ Viên mãn K7</title>
 <!-- Meta Pixel — CÙNG 2 Pixel với index.html (1081417664497098 + 1969118813618077). Trước 11/09/2026
      trang này KHÔNG nạp Pixel, nên lệnh fbq('track','Purchase') bên dưới im lặng bỏ qua: Meta ghi 0 lượt mua.
      Conversions API phía máy chủ CHỈ gửi cho Pixel 1081417664497098, nên Pixel 1969118813618077 chỉ nhận
@@ -147,7 +147,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
   var KHOA='pnvm_order';
   // Gia goc. Dung khi may chu bao uu dai gioi thieu khong ap dung duoc va don bi ha ve gia thuong.
   // Doi gia khoa thi sua CA day, index.html, VA MIN_AMOUNT trong lib/reconcile.js cua proxy.
-  var GIA_GOC=999000;
+  var GIA_GOC=1080000;
 
   var don=null;
   try{ don=JSON.parse(localStorage.getItem(KHOA)||sessionStorage.getItem(KHOA)||'null'); }catch(_e){}
@@ -164,7 +164,7 @@ h1{font-family:'Quicksand',sans-serif;font-size:clamp(24px,5vw,31px);color:var(-
   // ── Dựng màn hình chuyển khoản ──────────────────────────────────────────────
   // Vẽ trong MỘT hàm vì màn hình này có thể phải vẽ lại: khách vào bằng mã giới thiệu nhưng
   // đến lúc /api/lead chốt thì mã vừa hết suất, máy chủ hạ đơn về giá thường và đổi mã đơn.
-  // Vẽ lại là bắt buộc — để nguyên QR cũ thì khách chuyển 799.000đ cho một mã đơn cần 999.000đ,
+  // Vẽ lại là bắt buộc — để nguyên QR cũ thì khách chuyển 799.000đ cho một mã đơn cần đủ giá thường,
   // hệ đối soát coi là trả thiếu và đơn không bao giờ được chốt.
   var soTien=0;
   function veManTra(){
