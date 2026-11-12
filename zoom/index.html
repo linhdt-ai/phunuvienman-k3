@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lấy link Zoom — Chuyên viên Phụ nữ Viên mãn</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Nhập email hoặc số điện thoại đã đăng ký để nhận link vào lớp Zoom khoá Chuyên viên Phụ nữ Viên mãn.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --hong:#c2185b; --hong-dam:#8e0038; --hong-nhat:#fce4ec;
+  --kem:#fffafa; --vien:#e6d0d9; --chu:#3a2f33; --chu-mo:#6b5b60;
+  --vang:#f9a825; --do:#d32f2f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;padding:24px 16px 48px;
+  font-family:'Be Vietnam Pro',system-ui,-apple-system,sans-serif;
+  background:linear-gradient(180deg,var(--hong-nhat),var(--kem) 320px);
+  color:var(--chu);line-height:1.6;
+}
+.khung{max-width:560px;margin:0 auto}
+h1{
+  font-family:'Quicksand','Be Vietnam Pro',sans-serif;
+  font-size:clamp(22px,5.4vw,29px);line-height:1.25;
+  color:var(--hong-dam);margin:8px 0 6px;text-align:center;
+}
+.phu{text-align:center;color:var(--chu-mo);font-size:15px;margin:0 0 22px}
+.the{
+  background:#fff;border:1px solid var(--vien);border-radius:16px;
+  padding:20px;box-shadow:0 6px 20px rgba(142,0,56,.07);margin-bottom:16px;
+}
+label{display:block;font-weight:600;font-size:15px;margin-bottom:8px}
+input{
+  width:100%;padding:14px 15px;font-size:16px;font-family:inherit;
+  border:1.5px solid var(--vien);border-radius:11px;background:#fffdfd;color:var(--chu);
+}
+input:focus{outline:none;border-color:var(--hong);box-shadow:0 0 0 3px rgba(194,24,91,.12)}
+.goi-y{font-size:13.5px;color:var(--chu-mo);margin:8px 0 0}
+button{
+  width:100%;margin-top:14px;padding:15px;font-size:16.5px;font-weight:700;
+  font-family:inherit;color:#fff;background:var(--hong);
+  border:none;border-radius:11px;cursor:pointer;
+}
+button:hover{background:var(--hong-dam)}
+button:disabled{opacity:.6;cursor:progress}
+.nut-phu{
+  display:block;text-align:center;margin-top:10px;padding:13px;
+  font-size:15.5px;font-weight:600;text-decoration:none;
+  color:var(--hong-dam);background:#fff;border:1.5px solid var(--hong);border-radius:11px;
+}
+.nut-chinh{
+  display:block;text-align:center;padding:16px;margin-top:4px;
+  font-size:17px;font-weight:700;text-decoration:none;color:#fff;
+  background:var(--hong);border-radius:12px;
+}
+.an{display:none}
+.loi{
+  background:#fff5f5;border:1px solid #f3c2c2;color:#8d1d1d;
+  border-radius:12px;padding:15px;font-size:15px;
+}
+.ten-hv{
+  background:var(--hong-nhat);border-radius:12px;padding:14px 16px;margin-bottom:16px;
+}
+.ten-hv b{color:var(--hong-dam)}
+.cu-phap{
+  display:flex;align-items:center;gap:10px;margin-top:10px;
+  background:#fff;border:1.5px dashed var(--hong);border-radius:10px;padding:11px 13px;
+}
+.cu-phap code{
+  flex:1;font-size:15.5px;font-weight:700;color:var(--hong-dam);
+  font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-word;
+}
+.cu-phap button{width:auto;margin:0;padding:9px 13px;font-size:13.5px;border-radius:8px;flex:none}
+.buoi{border-top:1px solid var(--vien);padding-top:16px;margin-top:16px}
+.buoi:first-of-type{border-top:none;padding-top:0;margin-top:0}
+.buoi h3{font-size:16.5px;margin:0 0 3px;color:var(--hong-dam)}
+.buoi .luc{font-size:14.5px;color:var(--chu-mo);margin:0 0 12px}
+.phong{font-size:14px;color:var(--chu-mo);margin:10px 0 0;text-align:center}
+.yen-tam{font-size:13.5px;color:var(--chu-mo);margin:8px 0 0;text-align:center}
+.cuoi{font-size:14px;color:var(--chu-mo);text-align:center;margin-top:22px}
+.cuoi a{color:var(--hong-dam)}
+</style>
+</head>
+<body>
+<div class="khung">
+
+  <h1>Lấy link vào lớp Zoom</h1>
+  <p class="phu">Khoá học Chuyên viên <b>Phụ nữ Viên mãn</b></p>
+
+  <!-- Ô TRA CỨU -->
+  <div class="the" id="o-tra">
+    <label for="tu-khoa">Email hoặc số điện thoại chị đã đăng ký</label>
+    <input id="tu-khoa" type="text" inputmode="email" autocomplete="email"
+           placeholder="vd: chihoa@gmail.com hoặc 0912345678" autofocus>
+    <p class="goi-y">Nhập đúng email hoặc số điện thoại lúc ghi danh, để hệ thống nhận ra chị.</p>
+    <button id="nut-tra">Lấy link Zoom của tôi</button>
+  </div>
+
+  <!-- KẾT QUẢ -->
+  <div id="o-loi" class="the loi an"></div>
+
+  <div id="o-ok" class="an">
+    <div class="the">
+      <div class="ten-hv">
+        Chào chị <b id="ho-ten"></b> 👋<br>
+        Tên hiển thị của chị trong lớp là:
+        <div class="cu-phap">
+          <code id="cu-phap"></code>
+          <button id="nut-chep" type="button">Sao chép</button>
+        </div>
+      </div>
+      <div id="ds-buoi"></div>
+    </div>
+  </div>
+
+  <p class="cuoi">
+    Chưa vào được? Nhắn Zalo cho CSKH để được hỗ trợ ngay.<br>
+    <a href="/">← Về trang khoá học</a>
+  </p>
+
+</div>
+
+<script>
+// Link và danh sách học viên đều nằm ở server, trang này không giữ gì cả — xem api/zoom.js.
+var API = 'https://cdp-proxy-pnvm.vercel.app/api/zoom';
+
+var oTra   = document.getElementById('o-tra');
+var oLoi   = document.getElementById('o-loi');
+var oOk    = document.getElementById('o-ok');
+var nutTra = document.getElementById('nut-tra');
+var oInput = document.getElementById('tu-khoa');
+
+function hienLoi(html){
+  oOk.className = 'an';
+  oLoi.innerHTML = html;
+  oLoi.className = 'the loi';
+}
+
+function thoat(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Ngày ISO → "Thứ Năm, 12/11" cho dễ đối chiếu với lịch học.
+function ngayChu(iso, hien){
+  var t = ['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+  var d = new Date(iso + 'T00:00:00+07:00');
+  if (isNaN(d)) return hien || '';
+  return t[d.getDay()] + ', ' + hien;
+}
+
+function veBuoi(b){
+  // NÚT CHÍNH là mở bằng TRÌNH DUYỆT, vì chỉ đường đó mới điền sẵn tên đã quy ước
+  // (Zoom web client nhận ?uname=). Mở bằng app thì app lấy tên lưu trong máy, nên nút app
+  // chỉ để dự phòng và kèm lời nhắc tự sửa tên.
+  return '<div class="buoi">' +
+    '<h3>' + thoat(b.ten) + '</h3>' +
+    '<p class="luc">' + thoat(ngayChu(b.ngay, b.ngay_hien)) + ' · ' + thoat(b.gio) + '</p>' +
+    '<a class="nut-chinh" href="' + thoat(b.link_web) + '" target="_blank" rel="noopener">' +
+      'Vào lớp ngay (đã điền sẵn tên)</a>' +
+    '<p class="yen-tam">Bấm là vào, chị không cần sao chép hay gõ lại tên.</p>' +
+    '<a class="nut-phu" href="' + thoat(b.link_app) + '" target="_blank" rel="noopener">' +
+      'Hoặc mở bằng ứng dụng Zoom</a>' +
+    '<p class="phong">Mở bằng ứng dụng thì chị sửa tên thành cú pháp ở trên nhé.<br>' +
+      'ID phòng: <b>' + thoat(b.ma_phong) + '</b>' +
+      (b.mat_ma ? ' · Mật mã: <b>' + thoat(b.mat_ma) + '</b>' : '') + '</p>' +
+  '</div>';
+}
+
+async function tra(){
+  var s = oInput.value.trim();
+  if (!s) { hienLoi('Chị nhập email hoặc số điện thoại đã đăng ký giúp em nhé.'); return; }
+
+  nutTra.disabled = true;
+  nutTra.textContent = 'Đang tìm...';
+  oLoi.className = 'an';
+
+  var d;
+  try {
+    var r = await fetch(API, {
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body: JSON.stringify({ tu_khoa: s })
+    });
+    d = await r.json();
+  } catch(e) {
+    nutTra.disabled = false; nutTra.textContent = 'Lấy link Zoom của tôi';
+    hienLoi('Mạng đang chập chờn, chị bấm lại giúp em nhé.');
+    return;
+  }
+
+  nutTra.disabled = false;
+  nutTra.textContent = 'Lấy link Zoom của tôi';
+
+  if (!d || !d.ok || !d.thay) {
+    hienLoi('<b>Em chưa tìm thấy chị trong danh sách lớp.</b><br>' +
+      'Chị thử lại bằng <b>email</b> (nếu vừa nhập số điện thoại) hoặc ngược lại. ' +
+      'Vẫn chưa được thì chị nhắn Zalo cho CSKH, em kiểm tra và bổ sung ngay.');
+    return;
+  }
+
+  if (!d.buoi || !d.buoi.length) {
+    hienLoi('<b>Chào chị ' + thoat(d.ho_ten) + ', em đã tìm thấy chị trong lớp.</b><br>' +
+      'Nhưng hiện chưa có buổi Zoom nào sắp tới trên lịch. ' +
+      'Chị quay lại trang này trước giờ học, hoặc nhắn CSKH để hỏi lịch nhé.');
+    return;
+  }
+
+  document.getElementById('ho-ten').textContent  = d.ho_ten;
+  document.getElementById('cu-phap').textContent = d.cu_phap_ten;
+  document.getElementById('ds-buoi').innerHTML   = d.buoi.map(veBuoi).join('');
+
+  oLoi.className = 'an';
+  oOk.className  = '';
+  oOk.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+nutTra.addEventListener('click', tra);
+oInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') tra(); });
+
+document.getElementById('nut-chep').addEventListener('click', function(){
+  var nut = this;
+  var ten = document.getElementById('cu-phap').textContent;
+  function xong(){ nut.textContent = 'Đã chép ✓'; setTimeout(function(){ nut.textContent = 'Sao chép'; }, 2000); }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ten).then(xong, thuCachCu);
+  } else { thuCachCu(); }
+  // Safari cũ và WebView trong Zalo/Facebook không cho dùng clipboard API.
+  function thuCachCu(){
+    var t = document.createElement('textarea');
+    t.value = ten; t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); xong(); } catch(e) { nut.textContent = 'Chị bấm giữ để chép'; }
+    document.body.removeChild(t);
+  }
+});
+</script>
+</body>
+</html>
