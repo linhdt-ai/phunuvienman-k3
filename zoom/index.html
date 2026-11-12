@@ -153,6 +153,14 @@ function ngayChu(iso, hien){
   return t[d.getDay()] + ', ' + hien;
 }
 
+// Zoom hiển thị ID theo cụm "940 3940 5784". Để liền một dãy 11 số thì khách gõ tay rất dễ sai.
+function maDep(s){
+  var d = String(s || '').replace(/\D/g, '');
+  return d.length === 11 ? d.slice(0,3) + ' ' + d.slice(3,7) + ' ' + d.slice(7)
+       : d.length === 10 ? d.slice(0,3) + ' ' + d.slice(3,6) + ' ' + d.slice(6)
+       : d;
+}
+
 function veBuoi(b){
   // NÚT CHÍNH là mở bằng TRÌNH DUYỆT, vì chỉ đường đó mới điền sẵn tên đã quy ước
   // (Zoom web client nhận ?uname=). Mở bằng app thì app lấy tên lưu trong máy, nên nút app
@@ -166,7 +174,7 @@ function veBuoi(b){
     '<a class="nut-phu" href="' + thoat(b.link_app) + '" target="_blank" rel="noopener">' +
       'Hoặc mở bằng ứng dụng Zoom</a>' +
     '<p class="phong">Mở bằng ứng dụng thì chị sửa tên thành cú pháp ở trên nhé.<br>' +
-      'ID phòng: <b>' + thoat(b.ma_phong) + '</b>' +
+      'ID phòng: <b>' + thoat(maDep(b.ma_phong)) + '</b>' +
       (b.mat_ma ? ' · Mật mã: <b>' + thoat(b.mat_ma) + '</b>' : '') + '</p>' +
   '</div>';
 }
