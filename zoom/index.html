@@ -251,6 +251,15 @@ document.addEventListener('click', function(e){
   var a = e.target.closest ? e.target.closest('a.nut-chinh[data-du-phong]') : null;
   if (!a) return;
   var duPhong = a.getAttribute('data-du-phong');
+
+  // ĐÃ THỬ THẬT 13/11 (anh Linh, Samsung S23 Ultra): app Zoom mở đúng phòng nhưng BỎ QUA uname,
+  // màn hình xem trước tự điền tên máy "Samsung SM-S918U1". Nên bấm nút là CHÉP SẴN cú pháp tên
+  // vào bộ nhớ tạm — vào app chỉ cần chạm ô tên, xoá, dán. Phải chép ngay trong lúc bấm
+  // (trình duyệt chỉ cho chép khi người dùng vừa thao tác).
+  chep(cuPhapHienTai,
+    function(){ bao('✓ Đã chép tên ' + cuPhapHienTai + ' — vào Zoom chị dán vào ô tên nhé'); },
+    function(){});
+
   var daRoi = false;
   function roi(){ daRoi = true; }
   window.addEventListener('blur', roi, { once:true });
@@ -283,8 +292,9 @@ function veKhoi(ds){
     return '<div class="buoi">' + nhan +
       '<a class="nut-chinh" href="' + thoat(linkApp(b, cuPhapHienTai)) + '" ' +
         'data-du-phong="' + thoat(b.link_web) + '">' +
-        'Vào lớp ngay (đã điền sẵn tên)</a>' +
-      '<p class="yen-tam">Buổi nào chị cũng vào bằng nút này, không cần sao chép hay gõ lại tên.</p>' +
+        'Vào lớp ngay</a>' +
+      '<p class="yen-tam">Bấm nút là tên của chị được <b>chép sẵn</b>. Nếu Zoom hiện tên khác, ' +
+        'chị chạm vào tên → xoá → <b>dán</b> là xong, không phải gõ.</p>' +
       '<a class="nut-phu" href="' + thoat(b.link_web) + '" target="_blank" rel="noopener">' +
         'Không mở được ứng dụng? Vào bằng trình duyệt</a>' +
       // ID và mật mã là thứ khách phải GÕ TAY vào app Zoom — gõ sai một số là vào không được.
