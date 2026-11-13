@@ -85,6 +85,23 @@ button:disabled{opacity:.6;cursor:progress}
 .buoi{border-top:1px solid var(--vien);padding-top:16px;margin-top:16px}
 .buoi:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .nhan-lich{font-size:14px;font-weight:600;color:var(--chu-mo);margin:0 0 6px;letter-spacing:.2px}
+/* Số chạm được: phải TRÔNG như chạm được, không thì không ai nghĩ đến chuyện chạm vào.
+   Vùng chạm đủ rộng (padding) để ngón tay người lớn tuổi không trượt ra ngoài. */
+.goi{font-size:12.5px;color:var(--hong);font-weight:600}
+.chep-duoc{
+  display:inline-block;cursor:pointer;color:var(--hong-dam);
+  padding:4px 9px;margin:2px 0;border-radius:7px;
+  background:var(--hong-nhat);border:1px dashed var(--hong);
+  -webkit-user-select:all;user-select:all;   /* bấm giữ thì bôi trọn cả số, không dính chữ bên cạnh */
+}
+.chep-duoc:active{background:var(--hong);color:#fff}
+.bao{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);
+  background:rgba(40,20,28,.94);color:#fff;font-size:15px;font-weight:600;
+  padding:12px 20px;border-radius:999px;z-index:50;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;
+}
+.bao.hien{opacity:1;transform:translate(-50%,0)}
 .video{margin-top:18px}
 .video h3{font-size:16px;margin:0 0 9px;color:var(--hong-dam)}
 .video .boc{
@@ -140,6 +157,9 @@ button:disabled{opacity:.6;cursor:progress}
       </div>
     </div>
   </div>
+
+  <!-- Lời báo "đã chép", nổi lên rồi tự tắt. -->
+  <div class="bao" id="bao" role="status" aria-live="polite"></div>
 
   <p class="cuoi">
     Chưa vào được? Nhắn Zalo cho CSKH để được hỗ trợ ngay.<br>
@@ -221,9 +241,16 @@ function veKhoi(ds){
       '<p class="yen-tam">Buổi nào chị cũng vào bằng nút này, không cần sao chép hay gõ lại tên.</p>' +
       '<a class="nut-phu" href="' + thoat(b.link_app) + '" target="_blank" rel="noopener">' +
         'Hoặc mở bằng ứng dụng Zoom</a>' +
+      // ID và mật mã là thứ khách phải GÕ TAY vào app Zoom — gõ sai một số là vào không được.
+      // Cho chạm phát chép luôn thì không ai phải nhìn qua nhìn lại để chép từng chữ số.
+      // Chép ID KHÔNG kèm khoảng trắng: khoảng trắng chỉ để người đọc cho dễ, dán vào ô của
+      // Zoom thì dãy số liền mới chắc ăn.
       '<p class="phong">Mở bằng ứng dụng thì chị sửa tên thành cú pháp ở trên nhé.<br>' +
-        'ID phòng: <b>' + thoat(maDep(b.ma_phong)) + '</b>' +
-        (b.mat_ma ? ' · Mật mã: <b>' + thoat(b.mat_ma) + '</b>' : '') + '</p>' +
+        '<span class="goi">Chạm vào số để chép</span><br>' +
+        'ID phòng: <b class="chep-duoc" data-chep="' + thoat(b.ma_phong) + '" ' +
+          'data-ten="ID phòng" role="button" tabindex="0">' + thoat(maDep(b.ma_phong)) + '</b>' +
+        (b.mat_ma ? ' · Mật mã: <b class="chep-duoc" data-chep="' + thoat(b.mat_ma) + '" ' +
+          'data-ten="mật mã" role="button" tabindex="0">' + thoat(b.mat_ma) + '</b>' : '') + '</p>' +
     '</div>';
   }).join('');
 }
@@ -287,21 +314,61 @@ async function tra(){
 nutTra.addEventListener('click', tra);
 oInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') tra(); });
 
+// Chép vào bộ nhớ tạm. Dùng chung cho cú pháp tên, ID phòng và mật mã.
+// Safari cũ và WebView trong Zalo/Facebook không cho dùng clipboard API — nhiều chị em mở
+// trang ngay trong Zalo, nên BẮT BUỘC phải có đường dự phòng execCommand, không thì nút chết.
+function chep(chu, xong, hong){
+  function cachCu(){
+    var t = document.createElement('textarea');
+    t.value = chu; t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(e) { ok = false; }
+    document.body.removeChild(t);
+    ok ? xong() : hong();
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(chu).then(xong, cachCu);
+  } else { cachCu(); }
+}
+
+// Lời báo nổi giữa màn hình. Chạm vào ID/mật mã thì bản thân con số không đổi hình dạng được
+// (nó là con số, không phải cái nút có chữ), nên phải có thứ gì đó xác nhận là đã chép.
+var hetBao;
+function bao(chu){
+  var o = document.getElementById('bao');
+  o.textContent = chu;
+  o.className = 'bao hien';
+  clearTimeout(hetBao);
+  hetBao = setTimeout(function(){ o.className = 'bao'; }, 1800);
+}
+
 document.getElementById('nut-chep').addEventListener('click', function(){
   var nut = this;
-  var ten = document.getElementById('cu-phap').textContent;
   function xong(){ nut.textContent = 'Đã chép ✓'; setTimeout(function(){ nut.textContent = 'Sao chép'; }, 2000); }
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(ten).then(xong, thuCachCu);
-  } else { thuCachCu(); }
-  // Safari cũ và WebView trong Zalo/Facebook không cho dùng clipboard API.
-  function thuCachCu(){
-    var t = document.createElement('textarea');
-    t.value = ten; t.style.position = 'fixed'; t.style.opacity = '0';
-    document.body.appendChild(t); t.select();
-    try { document.execCommand('copy'); xong(); } catch(e) { nut.textContent = 'Chị bấm giữ để chép'; }
-    document.body.removeChild(t);
-  }
+  chep(document.getElementById('cu-phap').textContent, xong, function(){
+    nut.textContent = 'Chị bấm giữ để chép';
+  });
+});
+
+// ID phòng và mật mã: chạm vào là chép. Bắt ở cấp trang vì mấy ô này do JS vẽ ra sau khi
+// tra xong, lúc trang mới tải thì chúng chưa tồn tại để gắn sự kiện riêng.
+document.addEventListener('click', function(e){
+  var o = e.target.closest ? e.target.closest('[data-chep]') : null;
+  if (!o) return;
+  var chu = o.getAttribute('data-chep');
+  var ten = o.getAttribute('data-ten') || 'Đã chép';
+  chep(chu, function(){ bao('✓ Đã chép ' + ten); },
+            function(){ bao('Chị bấm giữ vào số để chép nhé'); });
+});
+
+// Máy tính: gõ Enter/Space khi đang chọn tới con số cũng chép, như mọi cái nút khác.
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  var o = e.target.closest ? e.target.closest('[data-chep]') : null;
+  if (!o) return;
+  e.preventDefault();
+  o.click();
 });
 </script>
 </body>
