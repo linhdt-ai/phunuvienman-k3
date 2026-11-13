@@ -101,6 +101,10 @@ button:disabled{opacity:.6;cursor:progress}
   -webkit-user-select:all;user-select:all;   /* bấm giữ thì bôi trọn cả số, không dính chữ bên cạnh */
 }
 .chep-duoc:active{background:var(--hong);color:#fff}
+.chep-duoc.vua-chep{
+  background:#1b7f3b;border-color:#1b7f3b;color:#fff;
+  font-size:14px;letter-spacing:0;   /* chữ dài hơn số, thu nhỏ lại để khỏi xô dòng */
+}
 .bao{
   position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);
   background:rgba(40,20,28,.94);color:#fff;font-size:15px;font-weight:600;
@@ -373,8 +377,26 @@ document.addEventListener('click', function(e){
   if (!o) return;
   var chu = o.getAttribute('data-chep');
   var ten = o.getAttribute('data-ten') || 'Đã chép';
-  chep(chu, function(){ bao('✓ Đã chép ' + ten); },
-            function(){ bao('Chị bấm giữ vào số để chép nhé'); });
+
+  // Đổi NGAY TẠI CHỖ con số thành "Đã chép ✓" rồi trả lại.
+  // Chỉ báo nổi dưới đáy màn hình là không đủ: mắt khách đang nhìn vào con số vừa chạm,
+  // chứ không nhìn xuống chân trang, nên dễ tưởng bấm hụt rồi bấm đi bấm lại.
+  function doiTamThoi(chuMoi){
+    if (o.dataset.dangBao) return;
+    o.dataset.dangBao = '1';
+    var cu = o.textContent;
+    o.textContent = chuMoi;
+    o.classList.add('vua-chep');
+    setTimeout(function(){
+      o.textContent = cu;
+      o.classList.remove('vua-chep');
+      delete o.dataset.dangBao;
+    }, 1400);
+  }
+
+  chep(chu,
+    function(){ doiTamThoi('Đã chép ✓'); bao('✓ Đã chép ' + ten); },
+    function(){ bao('Chị bấm giữ vào số để chép nhé'); });
 });
 
 // Máy tính: gõ Enter/Space khi đang chọn tới con số cũng chép, như mọi cái nút khác.
