@@ -248,7 +248,7 @@ function linkApp(b, ten){
 // Nên bấm xong chờ 2,5 giây: nếu trang vẫn đang hiện (app không bật lên che mất trang) thì
 // tự chuyển sang vào bằng trình duyệt, vẫn có sẵn tên.
 document.addEventListener('click', function(e){
-  var a = e.target.closest ? e.target.closest('a.nut-chinh[data-du-phong]') : null;
+  var a = e.target.closest ? e.target.closest('a.mo-app[data-du-phong]') : null;
   if (!a) return;
   var duPhong = a.getAttribute('data-du-phong');
 
@@ -289,20 +289,22 @@ function veKhoi(ds){
     // (zoommtg:// trên máy tính, zoomus:// trên điện thoại) nhận tham số uname = tên hiển thị.
     // Nút phụ là vào bằng trình duyệt (Zoom web client, cũng điền sẵn tên) cho máy không có app.
     // Thứ tự này theo đúng trang DDCC cũ anh Linh muốn giữ: app trước, trình duyệt sau.
+    // 13/11 anh Linh CHỐT: nút chính = TRÌNH DUYỆT, vì đã thử thật trên Android: app Zoom bỏ qua
+    // tên truyền sang. Web client là đường DUY NHẤT tự điền sẵn tên PNVM…
+    // Nút phụ = mở app; bấm vào thì chép sẵn tên để khách dán vào ô tên trong app.
     return '<div class="buoi">' + nhan +
-      '<a class="nut-chinh" href="' + thoat(linkApp(b, cuPhapHienTai)) + '" ' +
+      '<a class="nut-chinh" href="' + thoat(b.link_web) + '">' +
+        'Vào lớp ngay (đã điền sẵn tên)</a>' +
+      '<p class="yen-tam">Bấm là vào, tên của chị đã được điền sẵn, không phải gõ lại.</p>' +
+      '<a class="nut-phu mo-app" href="' + thoat(linkApp(b, cuPhapHienTai)) + '" ' +
         'data-du-phong="' + thoat(b.link_web) + '">' +
-        'Vào lớp ngay</a>' +
-      '<p class="yen-tam">Bấm nút là tên của chị được <b>chép sẵn</b>. Nếu Zoom hiện tên khác, ' +
-        'chị chạm vào tên → xoá → <b>dán</b> là xong, không phải gõ.</p>' +
-      '<a class="nut-phu" href="' + thoat(b.link_web) + '" target="_blank" rel="noopener">' +
-        'Không mở được ứng dụng? Vào bằng trình duyệt</a>' +
+        'Hoặc mở bằng ứng dụng Zoom</a>' +
+      '<p class="yen-tam">Mở bằng ứng dụng thì tên được <b>chép sẵn</b>: trong Zoom chị chạm vào tên → xoá → <b>dán</b>.</p>' +
       // ID và mật mã là thứ khách phải GÕ TAY vào app Zoom — gõ sai một số là vào không được.
       // Cho chạm phát chép luôn thì không ai phải nhìn qua nhìn lại để chép từng chữ số.
       // Chép ID KHÔNG kèm khoảng trắng: khoảng trắng chỉ để người đọc cho dễ, dán vào ô của
       // Zoom thì dãy số liền mới chắc ăn.
-      '<p class="phong">Nếu vào lớp mà tên chưa đúng cú pháp, chị đổi lại theo video bên dưới nhé.<br>' +
-        '<span class="goi">Chạm vào số để chép</span></p>' +
+      '<p class="phong"><span class="goi">Chạm vào số để chép</span></p>' +
       // Mỗi số một dòng riêng. Để chung một dòng thì trên màn hình điện thoại hẹp, chữ
       // "Mật mã:" ở lại dòng trên còn con số rơi xuống dòng dưới — nhìn như lỗi.
       '<div class="so">' +
