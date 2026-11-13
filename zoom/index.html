@@ -227,6 +227,39 @@ function maDep(s){
 //
 // Vẫn gom THEO PHÒNG chứ không gộp cứng: khoá nào BTC mở phòng riêng cho từng buổi thì trang
 // tự tách thành nhiều nút, và LÚC ĐÓ mới ghi ngày lên từng nút để khách biết bấm cái nào.
+var cuPhapHienTai = '';
+
+// Link mở thẳng ỨNG DỤNG Zoom với tên đã điền sẵn.
+// Điện thoại dùng zoomus://, máy tính dùng zoommtg:// — hai app khác nhau nhận hai kiểu link.
+// pwd lấy nguyên chuỗi đã mã hoá trong link gốc (không phải mật mã "123"), để app vào thẳng
+// phòng mà không hỏi mật mã.
+function linkApp(b, ten){
+  var pwd = '';
+  try { pwd = new URL(b.link_app).searchParams.get('pwd') || ''; } catch(e) {}
+  var q = 'confno=' + encodeURIComponent(b.ma_phong) +
+          (pwd ? '&pwd=' + encodeURIComponent(pwd) : '') +
+          '&uname=' + encodeURIComponent(ten);
+  var dienThoai = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return dienThoai ? 'zoomus://zoom.us/join?' + q
+                   : 'zoommtg://zoom.us/join?action=join&' + q;
+}
+
+// Máy CHƯA CÀI app thì bấm link zoommtg:// / zoomus:// không có gì xảy ra — khách tưởng nút hỏng.
+// Nên bấm xong chờ 2,5 giây: nếu trang vẫn đang hiện (app không bật lên che mất trang) thì
+// tự chuyển sang vào bằng trình duyệt, vẫn có sẵn tên.
+document.addEventListener('click', function(e){
+  var a = e.target.closest ? e.target.closest('a.nut-chinh[data-du-phong]') : null;
+  if (!a) return;
+  var duPhong = a.getAttribute('data-du-phong');
+  var daRoi = false;
+  function roi(){ daRoi = true; }
+  window.addEventListener('blur', roi, { once:true });
+  document.addEventListener('visibilitychange', function(){ if (document.hidden) roi(); }, { once:true });
+  setTimeout(function(){
+    if (!daRoi && !document.hidden) window.location.href = duPhong;
+  }, 2500);
+});
+
 function veKhoi(ds){
   var nhom = [], theoMa = {};
   ds.forEach(function(b){
@@ -242,20 +275,23 @@ function veKhoi(ds){
       ? '<p class="nhan-lich">Buổi ' + thoat(ngayChu(b.ngay, b.ngay_hien)) + ' · ' + thoat(b.gio) + '</p>'
       : '';
 
-    // NÚT CHÍNH là mở bằng TRÌNH DUYỆT, vì chỉ đường đó mới điền sẵn tên đã quy ước
-    // (Zoom web client nhận ?uname=). Mở bằng app thì app lấy tên lưu trong máy, nên nút app
-    // chỉ để dự phòng và kèm lời nhắc tự sửa tên.
+    // NÚT CHÍNH mở thẳng ỨNG DỤNG Zoom, CÓ SẴN TÊN.
+    // Link https://zoom.us/j/… không truyền được tên vào app. Nhưng app Zoom có kiểu link riêng
+    // (zoommtg:// trên máy tính, zoomus:// trên điện thoại) nhận tham số uname = tên hiển thị.
+    // Nút phụ là vào bằng trình duyệt (Zoom web client, cũng điền sẵn tên) cho máy không có app.
+    // Thứ tự này theo đúng trang DDCC cũ anh Linh muốn giữ: app trước, trình duyệt sau.
     return '<div class="buoi">' + nhan +
-      '<a class="nut-chinh" href="' + thoat(b.link_web) + '" target="_blank" rel="noopener">' +
+      '<a class="nut-chinh" href="' + thoat(linkApp(b, cuPhapHienTai)) + '" ' +
+        'data-du-phong="' + thoat(b.link_web) + '">' +
         'Vào lớp ngay (đã điền sẵn tên)</a>' +
       '<p class="yen-tam">Buổi nào chị cũng vào bằng nút này, không cần sao chép hay gõ lại tên.</p>' +
-      '<a class="nut-phu" href="' + thoat(b.link_app) + '" target="_blank" rel="noopener">' +
-        'Hoặc mở bằng ứng dụng Zoom</a>' +
+      '<a class="nut-phu" href="' + thoat(b.link_web) + '" target="_blank" rel="noopener">' +
+        'Không mở được ứng dụng? Vào bằng trình duyệt</a>' +
       // ID và mật mã là thứ khách phải GÕ TAY vào app Zoom — gõ sai một số là vào không được.
       // Cho chạm phát chép luôn thì không ai phải nhìn qua nhìn lại để chép từng chữ số.
       // Chép ID KHÔNG kèm khoảng trắng: khoảng trắng chỉ để người đọc cho dễ, dán vào ô của
       // Zoom thì dãy số liền mới chắc ăn.
-      '<p class="phong">Mở bằng ứng dụng thì chị sửa tên thành cú pháp ở trên nhé.<br>' +
+      '<p class="phong">Nếu vào lớp mà tên chưa đúng cú pháp, chị đổi lại theo video bên dưới nhé.<br>' +
         '<span class="goi">Chạm vào số để chép</span></p>' +
       // Mỗi số một dòng riêng. Để chung một dòng thì trên màn hình điện thoại hẹp, chữ
       // "Mật mã:" ở lại dòng trên còn con số rơi xuống dòng dưới — nhìn như lỗi.
@@ -315,6 +351,7 @@ async function tra(){
 
   document.getElementById('ho-ten').textContent  = d.ho_ten;
   document.getElementById('cu-phap').textContent = d.cu_phap_ten;
+  cuPhapHienTai = d.cu_phap_ten;
   document.getElementById('ds-buoi').innerHTML   = veKhoi(d.buoi);
 
   if (VIDEO_HD) {
