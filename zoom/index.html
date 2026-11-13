@@ -66,6 +66,13 @@ button:disabled{opacity:.6;cursor:progress}
   background:var(--hong-nhat);border-radius:12px;padding:14px 16px;margin-bottom:16px;
 }
 .ten-hv b{color:var(--hong-dam)}
+/* Lời cảnh báo của BTC — đây mới là lý do khách chịu đổi tên, nên để ngay trên cú pháp,
+   không nhét xuống cuối trang. */
+.luu-y{
+  font-size:14px;line-height:1.55;color:#8d1d1d;margin:10px 0 0;
+  background:#fff5f5;border-left:3px solid var(--do);border-radius:0 8px 8px 0;padding:10px 12px;
+}
+.luu-y b{color:var(--do)}
 .cu-phap{
   display:flex;align-items:center;gap:10px;margin-top:10px;
   background:#fff;border:1.5px dashed var(--hong);border-radius:10px;padding:11px 13px;
@@ -118,7 +125,9 @@ ul.lich li b{color:var(--hong-dam)}
   <div id="o-ok" class="an">
     <div class="the">
       <div class="ten-hv">
-        Chào chị <b id="ho-ten"></b> 👋<br>
+        Chào chị <b id="ho-ten"></b> 👋
+        <p class="luu-y"><b>Lưu ý:</b> Khi vào Zoom, chị đổi đúng tên theo cú pháp BTC yêu cầu.
+          BTC sẽ đưa ra khỏi lớp các trường hợp không đúng tên, để đảm bảo quyền lợi học viên.</p>
         Tên hiển thị của chị trong lớp là:
         <div class="cu-phap">
           <code id="cu-phap"></code>
@@ -152,7 +161,7 @@ var API = 'https://cdp-proxy-pnvm.vercel.app/api/zoom';
 // Video hướng dẫn đổi tên trên Zoom — dán link nhúng vào đây là khối video tự hiện.
 // YouTube thì dùng dạng https://www.youtube.com/embed/<mã>, không phải link watch?v=
 // (link watch bị YouTube chặn nhúng, khung sẽ trắng trơn).
-var VIDEO_HD = '';
+var VIDEO_HD = 'https://www.youtube.com/embed/JNt67TxhqNs';
 
 var oTra   = document.getElementById('o-tra');
 var oLoi   = document.getElementById('o-loi');
