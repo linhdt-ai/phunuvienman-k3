@@ -40,6 +40,8 @@ input{
 }
 input:focus{outline:none;border-color:var(--hong);box-shadow:0 0 0 3px rgba(194,24,91,.12)}
 .goi-y{font-size:13.5px;color:var(--chu-mo);margin:8px 0 0}
+.trang-thai{font-size:14.5px;font-weight:600;color:var(--hong);margin:8px 0 0;min-height:1em}
+.trang-thai:empty{display:none}
 button{
   width:100%;margin-top:14px;padding:15px;font-size:16.5px;font-weight:700;
   font-family:inherit;color:#fff;background:var(--hong);
@@ -136,8 +138,8 @@ button:disabled{opacity:.6;cursor:progress}
     <label for="tu-khoa">Email hoặc số điện thoại chị đã đăng ký</label>
     <input id="tu-khoa" type="text" inputmode="email" autocomplete="email"
            placeholder="vd: chihoa@gmail.com hoặc 0912345678" autofocus>
-    <p class="goi-y">Nhập đúng email hoặc số điện thoại lúc ghi danh, để hệ thống nhận ra chị.</p>
-    <button id="nut-tra">Lấy link Zoom của tôi</button>
+    <p class="goi-y">Nhập đúng email hoặc số điện thoại lúc ghi danh. <b>Gõ xong là tự tìm</b>, không cần bấm nút.</p>
+    <p class="trang-thai" id="trang-thai" aria-live="polite"></p>
   </div>
 
   <!-- KẾT QUẢ -->
@@ -190,7 +192,6 @@ var VIDEO_HD = 'https://www.youtube.com/embed/JNt67TxhqNs';
 var oTra   = document.getElementById('o-tra');
 var oLoi   = document.getElementById('o-loi');
 var oOk    = document.getElementById('o-ok');
-var nutTra = document.getElementById('nut-tra');
 var oInput = document.getElementById('tu-khoa');
 
 function hienLoi(html){
@@ -322,12 +323,44 @@ function veKhoi(ds){
   }).join('');
 }
 
-async function tra(){
-  var s = oInput.value.trim();
-  if (!s) { hienLoi('Chị nhập email hoặc số điện thoại đã đăng ký giúp em nhé.'); return; }
+// ── TRA TỰ ĐỘNG, KHÔNG CÓ NÚT ──────────────────────────────────────────────────────────────
+// 13/11 anh Linh bỏ nút "Lấy link Zoom của tôi": gõ ĐỦ số điện thoại hoặc email là tự tra.
+// "Đủ" nghĩa là: SĐT đủ 10 số (hoặc +84/84 + 9 số), hoặc email có dạng a@b.c.
+// Chưa đủ thì im lặng chờ gõ tiếp — chỉ khi khách bấm Enter/rời ô mà vẫn chưa đủ mới nhắc,
+// để không nhảy lỗi đỏ lên mặt người ta khi mới gõ được nửa số.
 
-  nutTra.disabled = true;
-  nutTra.textContent = 'Đang tìm...';
+var oTrangThai = document.getElementById('trang-thai');
+var daTra = '';        // giá trị vừa tra xong — gõ lại y hệt thì không tra lại
+var luot = 0;          // chống kết quả về sai thứ tự khi khách gõ nhanh
+var henGio;
+
+function phanLoai(s){
+  if (/^[0-9+().\s-]+$/.test(s)) {
+    var so = s.replace(/\D/g, '');
+    if (/^(84|0084)/.test(so)) so = '0' + so.replace(/^(0084|84)/, '');
+    if (so.length >= 10) return { du:true };
+    return { du:false, loi:'Số điện thoại <b>chưa đủ số</b> — số Việt Nam có 10 số. Chị kiểm tra lại giúp em nhé.' };
+  }
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)) return { du:true };
+  if (s.indexOf('@') < 0)
+    return { du:false, loi:'Email <b>thiếu dấu @</b>, ví dụ đúng: <b>chihoa@gmail.com</b>. Hoặc chị nhập số điện thoại cũng được.' };
+  return { du:false, loi:'Email <b>chưa đúng dạng</b>, ví dụ đúng: <b>chihoa@gmail.com</b>. Chị kiểm tra lại giúp em nhé.' };
+}
+
+function anKetQua(){ oLoi.className = 'an'; oOk.className = 'an'; }
+
+async function tra(epBao){
+  var s = oInput.value.trim();
+  if (!s) {
+    if (epBao) hienLoi('Chị nhập email hoặc số điện thoại đã đăng ký giúp em nhé.');
+    return;
+  }
+  var pl = phanLoai(s);
+  if (!pl.du) { if (epBao) hienLoi(pl.loi); return; }
+  if (s === daTra) return;
+
+  var cuaLuot = ++luot;
+  oTrangThai.textContent = 'Đang tìm...';
   oLoi.className = 'an';
 
   var d;
@@ -339,13 +372,15 @@ async function tra(){
     });
     d = await r.json();
   } catch(e) {
-    nutTra.disabled = false; nutTra.textContent = 'Lấy link Zoom của tôi';
-    hienLoi('Mạng đang chập chờn, chị bấm lại giúp em nhé.');
+    if (cuaLuot !== luot) return;
+    oTrangThai.textContent = '';
+    hienLoi('Mạng đang chập chờn, chị thử lại giúp em nhé (bấm Enter hoặc gõ lại).');
     return;
   }
+  if (cuaLuot !== luot) return;   // khách đã gõ tiếp sang thứ khác, bỏ kết quả cũ
 
-  nutTra.disabled = false;
-  nutTra.textContent = 'Lấy link Zoom của tôi';
+  oTrangThai.textContent = '';
+  daTra = s;
 
   if (!d || !d.ok || !d.thay) {
     hienLoi('<b>Em chưa tìm thấy chị trong danh sách lớp.</b><br>' +
@@ -379,8 +414,21 @@ async function tra(){
   oOk.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-nutTra.addEventListener('click', tra);
-oInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') tra(); });
+// Gõ tới đâu: đổi khác với giá trị đã tra thì giấu kết quả cũ (khỏi nhầm người này nhìn
+// kết quả người kia), rồi chờ khách ngừng gõ 0,7 giây mới tra — không gọi máy chủ mỗi phím.
+oInput.addEventListener('input', function(){
+  if (oInput.value.trim() !== daTra) anKetQua();
+  clearTimeout(henGio);
+  henGio = setTimeout(function(){ tra(false); }, 700);
+});
+// Enter / nút "Đi" trên bàn phím điện thoại / rời khỏi ô: tra ngay, chưa đúng dạng thì nhắc.
+oInput.addEventListener('keydown', function(e){
+  if (e.key === 'Enter') { e.preventDefault(); clearTimeout(henGio); daTra = ''; tra(true); oInput.blur(); }
+});
+// Rời ô mà ô còn trống thì thôi, không mắng — có khi khách chỉ chạm nhầm ra ngoài.
+oInput.addEventListener('blur', function(){ clearTimeout(henGio); if (oInput.value.trim()) tra(true); });
+// Dán số từ Zalo vào cũng tính như gõ.
+oInput.addEventListener('paste', function(){ setTimeout(function(){ clearTimeout(henGio); tra(false); }, 50); });
 
 // Chép vào bộ nhớ tạm. Dùng chung cho cú pháp tên, ID phòng và mật mã.
 // Safari cũ và WebView trong Zalo/Facebook không cho dùng clipboard API — nhiều chị em mở
