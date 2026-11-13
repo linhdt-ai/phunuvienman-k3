@@ -88,6 +88,12 @@ button:disabled{opacity:.6;cursor:progress}
 /* Số chạm được: phải TRÔNG như chạm được, không thì không ai nghĩ đến chuyện chạm vào.
    Vùng chạm đủ rộng (padding) để ngón tay người lớn tuổi không trượt ra ngoài. */
 .goi{font-size:12.5px;color:var(--hong);font-weight:600}
+.so{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  max-width:280px;margin:7px auto 0;padding:0 2px;
+}
+.so span{font-size:14.5px;color:var(--chu-mo)}
+.so .chep-duoc{font-size:16px;font-weight:700;letter-spacing:.4px}
 .chep-duoc{
   display:inline-block;cursor:pointer;color:var(--hong-dam);
   padding:4px 9px;margin:2px 0;border-radius:7px;
@@ -246,11 +252,20 @@ function veKhoi(ds){
       // Chép ID KHÔNG kèm khoảng trắng: khoảng trắng chỉ để người đọc cho dễ, dán vào ô của
       // Zoom thì dãy số liền mới chắc ăn.
       '<p class="phong">Mở bằng ứng dụng thì chị sửa tên thành cú pháp ở trên nhé.<br>' +
-        '<span class="goi">Chạm vào số để chép</span><br>' +
-        'ID phòng: <b class="chep-duoc" data-chep="' + thoat(b.ma_phong) + '" ' +
+        '<span class="goi">Chạm vào số để chép</span></p>' +
+      // Mỗi số một dòng riêng. Để chung một dòng thì trên màn hình điện thoại hẹp, chữ
+      // "Mật mã:" ở lại dòng trên còn con số rơi xuống dòng dưới — nhìn như lỗi.
+      '<div class="so">' +
+        '<span>ID phòng</span>' +
+        '<b class="chep-duoc" data-chep="' + thoat(b.ma_phong) + '" ' +
           'data-ten="ID phòng" role="button" tabindex="0">' + thoat(maDep(b.ma_phong)) + '</b>' +
-        (b.mat_ma ? ' · Mật mã: <b class="chep-duoc" data-chep="' + thoat(b.mat_ma) + '" ' +
-          'data-ten="mật mã" role="button" tabindex="0">' + thoat(b.mat_ma) + '</b>' : '') + '</p>' +
+      '</div>' +
+      (b.mat_ma ?
+      '<div class="so">' +
+        '<span>Mật mã</span>' +
+        '<b class="chep-duoc" data-chep="' + thoat(b.mat_ma) + '" ' +
+          'data-ten="mật mã" role="button" tabindex="0">' + thoat(b.mat_ma) + '</b>' +
+      '</div>' : '') +
     '</div>';
   }).join('');
 }
