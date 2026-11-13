@@ -77,8 +77,20 @@ button:disabled{opacity:.6;cursor:progress}
 .cu-phap button{width:auto;margin:0;padding:9px 13px;font-size:13.5px;border-radius:8px;flex:none}
 .buoi{border-top:1px solid var(--vien);padding-top:16px;margin-top:16px}
 .buoi:first-of-type{border-top:none;padding-top:0;margin-top:0}
-.buoi h3{font-size:16.5px;margin:0 0 3px;color:var(--hong-dam)}
-.buoi .luc{font-size:14.5px;color:var(--chu-mo);margin:0 0 12px}
+.nhan-lich{font-size:14px;font-weight:600;color:var(--chu-mo);margin:0 0 6px;letter-spacing:.2px}
+ul.lich{list-style:none;margin:0 0 16px;padding:0}
+ul.lich li{
+  padding:9px 13px;margin-bottom:7px;font-size:15.5px;
+  background:#fffafb;border-left:3px solid var(--hong);border-radius:0 9px 9px 0;
+}
+ul.lich li b{color:var(--hong-dam)}
+.video{margin-top:18px}
+.video h3{font-size:16px;margin:0 0 9px;color:var(--hong-dam)}
+.video .boc{
+  position:relative;padding-top:56.25%;border-radius:12px;overflow:hidden;
+  background:#f3e7eb;border:1px solid var(--vien);
+}
+.video .boc iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .phong{font-size:14px;color:var(--chu-mo);margin:10px 0 0;text-align:center}
 .yen-tam{font-size:13.5px;color:var(--chu-mo);margin:8px 0 0;text-align:center}
 .cuoi{font-size:14px;color:var(--chu-mo);text-align:center;margin-top:22px}
@@ -114,6 +126,15 @@ button:disabled{opacity:.6;cursor:progress}
         </div>
       </div>
       <div id="ds-buoi"></div>
+
+      <!-- Video hướng dẫn đổi tên trên Zoom. Chỉ hiện khi VIDEO_HD ở dưới có link —
+           để trống thì cả khối tự ẩn, trang không bao giờ hở ra ô video rỗng. -->
+      <div class="video an" id="o-video">
+        <h3>Hướng dẫn đổi tên hiển thị trên Zoom</h3>
+        <div class="boc"><iframe id="khung-video" src="" title="Hướng dẫn đổi tên trên Zoom"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+          allowfullscreen loading="lazy"></iframe></div>
+      </div>
     </div>
   </div>
 
@@ -127,6 +148,11 @@ button:disabled{opacity:.6;cursor:progress}
 <script>
 // Link và danh sách học viên đều nằm ở server, trang này không giữ gì cả — xem api/zoom.js.
 var API = 'https://cdp-proxy-pnvm.vercel.app/api/zoom';
+
+// Video hướng dẫn đổi tên trên Zoom — dán link nhúng vào đây là khối video tự hiện.
+// YouTube thì dùng dạng https://www.youtube.com/embed/<mã>, không phải link watch?v=
+// (link watch bị YouTube chặn nhúng, khung sẽ trắng trơn).
+var VIDEO_HD = '';
 
 var oTra   = document.getElementById('o-tra');
 var oLoi   = document.getElementById('o-loi');
@@ -161,22 +187,42 @@ function maDep(s){
        : d;
 }
 
-function veBuoi(b){
-  // NÚT CHÍNH là mở bằng TRÌNH DUYỆT, vì chỉ đường đó mới điền sẵn tên đã quy ước
-  // (Zoom web client nhận ?uname=). Mở bằng app thì app lấy tên lưu trong máy, nên nút app
-  // chỉ để dự phòng và kèm lời nhắc tự sửa tên.
-  return '<div class="buoi">' +
-    '<h3>' + thoat(b.ten) + '</h3>' +
-    '<p class="luc">' + thoat(ngayChu(b.ngay, b.ngay_hien)) + ' · ' + thoat(b.gio) + '</p>' +
-    '<a class="nut-chinh" href="' + thoat(b.link_web) + '" target="_blank" rel="noopener">' +
-      'Vào lớp ngay (đã điền sẵn tên)</a>' +
-    '<p class="yen-tam">Bấm là vào, chị không cần sao chép hay gõ lại tên.</p>' +
-    '<a class="nut-phu" href="' + thoat(b.link_app) + '" target="_blank" rel="noopener">' +
-      'Hoặc mở bằng ứng dụng Zoom</a>' +
-    '<p class="phong">Mở bằng ứng dụng thì chị sửa tên thành cú pháp ở trên nhé.<br>' +
-      'ID phòng: <b>' + thoat(maDep(b.ma_phong)) + '</b>' +
-      (b.mat_ma ? ' · Mật mã: <b>' + thoat(b.mat_ma) + '</b>' : '') + '</p>' +
-  '</div>';
+// MỘT KHỐI cho MỘT PHÒNG, không diễn giải từng buổi.
+// Cả khoá dùng chung một phòng Zoom, nên lặp lại y hệt nút + ID + mật mã cho mỗi buổi chỉ làm
+// trang dài ra và khiến khách tưởng mỗi buổi một link khác nhau. Lịch các buổi gom thành mấy
+// dòng nhỏ để khách biết hôm nào học, còn link thì một chỗ duy nhất.
+//
+// Vẫn gom THEO PHÒNG chứ không gộp cứng: khoá nào BTC mở phòng riêng cho từng buổi thì trang
+// tự tách ra thành nhiều khối, không phải sửa lại trang.
+function veKhoi(ds){
+  var nhom = [], theoMa = {};
+  ds.forEach(function(b){
+    if (!theoMa[b.ma_phong]) { theoMa[b.ma_phong] = { phong:b, buoi:[] }; nhom.push(theoMa[b.ma_phong]); }
+    theoMa[b.ma_phong].buoi.push(b);
+  });
+
+  return nhom.map(function(n){
+    var b = n.phong;
+    var lich = n.buoi.map(function(x){
+      return '<li>' + thoat(ngayChu(x.ngay, x.ngay_hien)) + ' · <b>' + thoat(x.gio) + '</b></li>';
+    }).join('');
+
+    // NÚT CHÍNH là mở bằng TRÌNH DUYỆT, vì chỉ đường đó mới điền sẵn tên đã quy ước
+    // (Zoom web client nhận ?uname=). Mở bằng app thì app lấy tên lưu trong máy, nên nút app
+    // chỉ để dự phòng và kèm lời nhắc tự sửa tên.
+    return '<div class="buoi">' +
+      '<p class="nhan-lich">Các buổi học sắp tới</p>' +
+      '<ul class="lich">' + lich + '</ul>' +
+      '<a class="nut-chinh" href="' + thoat(b.link_web) + '" target="_blank" rel="noopener">' +
+        'Vào lớp ngay (đã điền sẵn tên)</a>' +
+      '<p class="yen-tam">Buổi nào chị cũng vào bằng nút này, không cần sao chép hay gõ lại tên.</p>' +
+      '<a class="nut-phu" href="' + thoat(b.link_app) + '" target="_blank" rel="noopener">' +
+        'Hoặc mở bằng ứng dụng Zoom</a>' +
+      '<p class="phong">Mở bằng ứng dụng thì chị sửa tên thành cú pháp ở trên nhé.<br>' +
+        'ID phòng: <b>' + thoat(maDep(b.ma_phong)) + '</b>' +
+        (b.mat_ma ? ' · Mật mã: <b>' + thoat(b.mat_ma) + '</b>' : '') + '</p>' +
+    '</div>';
+  }).join('');
 }
 
 async function tra(){
@@ -220,7 +266,15 @@ async function tra(){
 
   document.getElementById('ho-ten').textContent  = d.ho_ten;
   document.getElementById('cu-phap').textContent = d.cu_phap_ten;
-  document.getElementById('ds-buoi').innerHTML   = d.buoi.map(veBuoi).join('');
+  document.getElementById('ds-buoi').innerHTML   = veKhoi(d.buoi);
+
+  if (VIDEO_HD) {
+    // Chỉ nạp video KHI đã tra ra người — nạp sẵn từ đầu thì ai mở trang cũng tốn dung lượng,
+    // mà phần lớn khách vào đây chỉ để bấm một nút rồi đi.
+    var khung = document.getElementById('khung-video');
+    if (khung.src !== VIDEO_HD) khung.src = VIDEO_HD;
+    document.getElementById('o-video').className = 'video';
+  }
 
   oLoi.className = 'an';
   oOk.className  = '';
