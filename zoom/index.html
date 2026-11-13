@@ -125,6 +125,9 @@ button:disabled{opacity:.6;cursor:progress}
 .yen-tam{font-size:13.5px;color:var(--chu-mo);margin:8px 0 0;text-align:center}
 .cuoi{font-size:14px;color:var(--chu-mo);text-align:center;margin-top:22px}
 .cuoi a{color:var(--hong-dam)}
+.ho-tro{display:inline-block;margin:6px 0 4px;font-size:15.5px;font-weight:700}
+.ho-tro a{color:var(--hong);text-decoration:none;padding:4px 2px}
+.loi a{color:#8d1d1d}
 </style>
 </head>
 <body>
@@ -174,7 +177,12 @@ button:disabled{opacity:.6;cursor:progress}
   <div class="bao" id="bao" role="status" aria-live="polite"></div>
 
   <p class="cuoi">
-    Chưa vào được? Nhắn Zalo cho CSKH để được hỗ trợ ngay.<br>
+    Chưa vào được? Liên hệ admin để được hỗ trợ ngay:<br>
+    <span class="ho-tro">
+      <a href="https://zalo.me/0866487773" target="_blank" rel="noopener">Nhắn Zalo 0866 487 773</a>
+      ·
+      <a href="tel:0866487773">Gọi điện</a>
+    </span><br>
     <a href="/">← Về trang khoá học</a>
   </p>
 
@@ -187,7 +195,11 @@ var API = 'https://cdp-proxy-pnvm.vercel.app/api/zoom';
 // Video hướng dẫn đổi tên trên Zoom — dán link nhúng vào đây là khối video tự hiện.
 // YouTube thì dùng dạng https://www.youtube.com/embed/<mã>, không phải link watch?v=
 // (link watch bị YouTube chặn nhúng, khung sẽ trắng trơn).
-var VIDEO_HD = 'https://www.youtube.com/embed/JNt67TxhqNs';
+// Số hỗ trợ của anh Linh — mang từ trang DDCC cũ sang ("liên hệ admin qua 0866 487 773").
+// Gắn thẳng vào lời báo lỗi: lúc khách tra không ra chính là lúc họ cần số này nhất.
+var HO_TRO = '<a href="https://zalo.me/0866487773" target="_blank" rel="noopener"><b>Zalo 0866 487 773</b></a>';
+
+var VIDEO_HD ='https://www.youtube.com/embed/JNt67TxhqNs';
 
 var oTra   = document.getElementById('o-tra');
 var oLoi   = document.getElementById('o-loi');
@@ -385,14 +397,14 @@ async function tra(epBao){
   if (!d || !d.ok || !d.thay) {
     hienLoi('<b>Em chưa tìm thấy chị trong danh sách lớp.</b><br>' +
       'Chị thử lại bằng <b>email</b> (nếu vừa nhập số điện thoại) hoặc ngược lại. ' +
-      'Vẫn chưa được thì chị nhắn Zalo cho CSKH, em kiểm tra và bổ sung ngay.');
+      'Vẫn chưa được thì chị liên hệ admin qua ' + HO_TRO + ', em kiểm tra và bổ sung ngay.');
     return;
   }
 
   if (!d.buoi || !d.buoi.length) {
     hienLoi('<b>Chào chị ' + thoat(d.ho_ten) + ', em đã tìm thấy chị trong lớp.</b><br>' +
       'Nhưng hiện chưa có buổi Zoom nào sắp tới trên lịch. ' +
-      'Chị quay lại trang này trước giờ học, hoặc nhắn CSKH để hỏi lịch nhé.');
+      'Chị quay lại trang này trước giờ học, hoặc liên hệ admin qua ' + HO_TRO + ' để hỏi lịch nhé.');
     return;
   }
 
