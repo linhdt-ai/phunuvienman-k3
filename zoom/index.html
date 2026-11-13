@@ -85,12 +85,6 @@ button:disabled{opacity:.6;cursor:progress}
 .buoi{border-top:1px solid var(--vien);padding-top:16px;margin-top:16px}
 .buoi:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .nhan-lich{font-size:14px;font-weight:600;color:var(--chu-mo);margin:0 0 6px;letter-spacing:.2px}
-ul.lich{list-style:none;margin:0 0 16px;padding:0}
-ul.lich li{
-  padding:9px 13px;margin-bottom:7px;font-size:15.5px;
-  background:#fffafb;border-left:3px solid var(--hong);border-radius:0 9px 9px 0;
-}
-ul.lich li b{color:var(--hong-dam)}
 .video{margin-top:18px}
 .video h3{font-size:16px;margin:0 0 9px;color:var(--hong-dam)}
 .video .boc{
@@ -196,13 +190,13 @@ function maDep(s){
        : d;
 }
 
-// MỘT KHỐI cho MỘT PHÒNG, không diễn giải từng buổi.
-// Cả khoá dùng chung một phòng Zoom, nên lặp lại y hệt nút + ID + mật mã cho mỗi buổi chỉ làm
-// trang dài ra và khiến khách tưởng mỗi buổi một link khác nhau. Lịch các buổi gom thành mấy
-// dòng nhỏ để khách biết hôm nào học, còn link thì một chỗ duy nhất.
+// MỘT PHÒNG = MỘT NÚT. Không liệt kê buổi.
+// Cả khoá dùng chung một phòng Zoom, nên nói "các buổi học sắp tới" rồi mới tới nút vẫn khiến
+// khách phải đọc một đoạn thừa trước khi thấy chỗ bấm — mà bấm buổi nào cũng chỉ một link ấy.
+// Lịch học thì chị em đã có trong tin Zalo và email của BTC rồi.
 //
 // Vẫn gom THEO PHÒNG chứ không gộp cứng: khoá nào BTC mở phòng riêng cho từng buổi thì trang
-// tự tách ra thành nhiều khối, không phải sửa lại trang.
+// tự tách thành nhiều nút, và LÚC ĐÓ mới ghi ngày lên từng nút để khách biết bấm cái nào.
 function veKhoi(ds){
   var nhom = [], theoMa = {};
   ds.forEach(function(b){
@@ -210,18 +204,18 @@ function veKhoi(ds){
     theoMa[b.ma_phong].buoi.push(b);
   });
 
+  var nhieuPhong = nhom.length > 1;
+
   return nhom.map(function(n){
     var b = n.phong;
-    var lich = n.buoi.map(function(x){
-      return '<li>' + thoat(ngayChu(x.ngay, x.ngay_hien)) + ' · <b>' + thoat(x.gio) + '</b></li>';
-    }).join('');
+    var nhan = nhieuPhong
+      ? '<p class="nhan-lich">Buổi ' + thoat(ngayChu(b.ngay, b.ngay_hien)) + ' · ' + thoat(b.gio) + '</p>'
+      : '';
 
     // NÚT CHÍNH là mở bằng TRÌNH DUYỆT, vì chỉ đường đó mới điền sẵn tên đã quy ước
     // (Zoom web client nhận ?uname=). Mở bằng app thì app lấy tên lưu trong máy, nên nút app
     // chỉ để dự phòng và kèm lời nhắc tự sửa tên.
-    return '<div class="buoi">' +
-      '<p class="nhan-lich">Các buổi học sắp tới</p>' +
-      '<ul class="lich">' + lich + '</ul>' +
+    return '<div class="buoi">' + nhan +
       '<a class="nut-chinh" href="' + thoat(b.link_web) + '" target="_blank" rel="noopener">' +
         'Vào lớp ngay (đã điền sẵn tên)</a>' +
       '<p class="yen-tam">Buổi nào chị cũng vào bằng nút này, không cần sao chép hay gõ lại tên.</p>' +
